@@ -48,27 +48,27 @@ function formatLabel(key) {
 const all_vehicle_status = ref([
   {
     status_des: '申請中油車隊卡',
-    icon_path: '/vehicle_status/1.png'
+    icon_path: './vehicle_status/1.png'
   },
   {
     status_des: '送出申請中油車隊卡',
-    icon_path: '/vehicle_status/2.png'
+    icon_path: './vehicle_status/2.png'
   },
   {
     status_des: '中油車隊卡製卡中',
-    icon_path: '/vehicle_status/3.png'
+    icon_path: './vehicle_status/3.png'
   },
   {
     status_des: '中油清點中油車隊卡',
-    icon_path: '/vehicle_status/4.png'
+    icon_path: './vehicle_status/4.png'
   },
   {
     status_des: '鉅泰寄出中油車隊卡',
-    icon_path: '/vehicle_status/5.png'
+    icon_path: './vehicle_status/5.png'
   },
   {
     status_des: '掛號單號查詢',
-    icon_path: '/vehicle_status/6.png'
+    icon_path: './vehicle_status/6.png'
   }
 ])
 
