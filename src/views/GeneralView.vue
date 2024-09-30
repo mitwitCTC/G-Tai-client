@@ -59,12 +59,16 @@ const all_vehicle_status = ref([
     icon_path: '/vehicle_status/3.png'
   },
   {
-    status_des: '鉅泰寄出中油車隊卡',
+    status_des: '中油清點中油車隊卡',
     icon_path: '/vehicle_status/4.png'
   },
   {
-    status_des: '掛號單號查詢',
+    status_des: '鉅泰寄出中油車隊卡',
     icon_path: '/vehicle_status/5.png'
+  },
+  {
+    status_des: '掛號單號查詢',
+    icon_path: '/vehicle_status/6.png'
   }
 ])
 
