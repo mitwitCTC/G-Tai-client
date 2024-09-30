@@ -45,6 +45,32 @@ function formatLabel(key) {
   return labels[key] || key
 }
 
+const all_vehicle_status = ref([
+  {
+    status_des: '申請中油車隊卡',
+    icon_path: '/vehicle_status/1.png'
+  },
+  {
+    status_des: '送出申請中油車隊卡',
+    icon_path: '/vehicle_status/2.png'
+  },
+  {
+    status_des: '中油車隊卡製卡中',
+    icon_path: '/vehicle_status/3.png'
+  },
+  {
+    status_des: '鉅泰寄出中油車隊卡',
+    icon_path: '/vehicle_status/4.png'
+  },
+  {
+    status_des: '掛號單號查詢',
+    icon_path: '/vehicle_status/5.png'
+  }
+])
+
+const vehicle_status = ref(Math.floor(Math.random() * all_vehicle_status.value.length))
+</script>
+
 <template>
   <div class="container mt-5">
     <router-link to="/">
@@ -69,5 +95,34 @@ function formatLabel(key) {
         </tr>
       </tbody>
     </table>
+    <h2>車籍異動狀態</h2>
+    <div id="vehicle-status" class="mt-5">
+      <ul class="d-flex gap-5 justify-content-center align-items-center flex-wrap">
+        <li
+          v-for="(item, index) in all_vehicle_status"
+          :key="index"
+          :class="{
+            'opacity-100': index === vehicle_status,
+            'opacity-50': index !== vehicle_status
+          }"
+          class="d-flex flex-column align-items-center position-relative"
+        >
+          <img class="vehicle-status-img" :src="item.icon_path" alt="vehicle-status" />
+          <p>{{ item.status_des }}</p>
+        </li>
+      </ul>
+    </div>
   </div>
 </template>
+
+<style scoped>
+.vehicle-status-img {
+  width: 10vw;
+  aspect-ratio: 1/1.1;
+}
+@media (max-width: 576px) {
+  .vehicle-status-img {
+    height: 15vw;
+  }
+}
+</style>
