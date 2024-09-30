@@ -44,6 +44,75 @@ const low_balance = ref(200000)
 function formatNumber(value) {
   return value.toLocaleString('en-US')
 }
+
+const transfer_record = ref([
+  {
+    scheduled_date: '2024-08-07',
+    remittance_amount: 343000,
+    note: '刷卡'
+  },
+  {
+    scheduled_date: '2024-08-05',
+    remittance_amount: 800000,
+    note: '匯款'
+  },
+  {
+    scheduled_date: '2024-08-01',
+    remittance_amount: 490000,
+    note: '刷卡'
+  },
+  {
+    scheduled_date: '2024-07-25',
+    remittance_amount: 500000,
+    note: '刷卡'
+  },
+  {
+    scheduled_date: '2024-07-21',
+    remittance_amount: 300000,
+    note: '刷卡'
+  },
+  {
+    scheduled_date: '2024-07-15',
+    remittance_amount: 390000,
+    note: '刷卡'
+  },
+  {
+    scheduled_date: '2024-07-08',
+    remittance_amount: 300000,
+    note: '刷卡'
+  },
+  {
+    scheduled_date: '2024-07-05',
+    remittance_amount: 600000,
+    note: '刷卡'
+  },
+  {
+    scheduled_date: '2024-07-01',
+    remittance_amount: 300000,
+    note: '刷卡'
+  }
+])
+
+// 分頁相關
+const pageSize = ref(5) // 每頁顯示的筆數
+const currentPage = ref(1) // 當前頁碼
+const totalRecords = computed(() => transfer_record.value.length) // 總筆數
+const paginatedData = computed(() => {
+  const start = (currentPage.value - 1) * pageSize.value
+  const end = start + pageSize.value
+  return transfer_record.value.slice(start, end)
+})
+
+// 改變每頁顯示的筆數
+function handleSizeChange(size) {
+  pageSize.value = size
+  currentPage.value = 1 // 重置到第一頁
+}
+
+// 改變當前頁碼
+function handleCurrentChange(page) {
+  currentPage.value = page
+}
 </script>
 
 <template>
@@ -85,6 +154,32 @@ function formatNumber(value) {
       </span>
     </p>
     <p>安全值金額：{{ formatNumber(low_balance) }}</p>
+    <el-table :data="paginatedData" stripe center>
+      <el-table-column prop="scheduled_date" label="系統入帳日" />
+      <el-table-column prop="remittance_amount" label="匯款金額">
+        <template #default="{ row }">
+          <span>{{ formatNumber(row.remittance_amount) }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column prop="note" label="備註" />
+    </el-table>
+
+    <p>
+      顯示第 {{ (currentPage - 1) * pageSize + 1 }} 項 到 第
+      {{ Math.min(currentPage * pageSize, totalRecords) }} 項 (共 {{ totalRecords }} 項)
+    </p>
+    <el-pagination
+      background
+      layout="sizes, prev, pager, next"
+      :page-sizes="[3, 5, 10]"
+      :page-size="pageSize"
+      :show-sizes="false"
+      :total="totalRecords"
+      :current-page="currentPage"
+      @size-change="handleSizeChange"
+      @current-change="handleCurrentChange"
+    >
+    </el-pagination>
   </div>
 </template>
 
