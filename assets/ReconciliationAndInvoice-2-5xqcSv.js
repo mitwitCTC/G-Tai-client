@@ -1,0 +1,1 @@
+import{_ as t,c as n,a as r,b as a,w as s,F as c,r as l,o as i,d}from"./index-Bi9egzy7.js";const _={};function u(f,e){const o=l("router-link");return i(),n(c,null,[e[1]||(e[1]=r("h1",null,"對帳及發票查詢",-1)),a(o,{to:"/"},{default:s(()=>e[0]||(e[0]=[d("首頁")])),_:1})],64)}const p=t(_,[["render",u]]);export{p as default};
