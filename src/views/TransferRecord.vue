@@ -9,9 +9,22 @@ const currentMonth = String(today.getMonth() + 1).padStart(2, '0')
 const transfer_search_month = ref(`${currentYear}-${currentMonth}`)
 const current_month = ref('')
 
+// 台北時間格式
+const options = {
+  timeZone: 'Asia/Taipei',
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+  hour: '2-digit',
+  minute: '2-digit',
+  second: '2-digit',
+  hour12: false
+}
+
 function search_transfer_data() {
   console.log(transfer_search_month.value)
   updateCurrentMonth()
+  transaction_time.value = new Intl.DateTimeFormat('en-CA', options).format(today).replace(',', '')
 }
 
 function updateCurrentMonth() {
@@ -33,6 +46,8 @@ const previous_month = computed(() => {
 onMounted(() => {
   search_transfer_data()
 })
+
+const transaction_time = ref('')
 
 const current_month_balance = ref(-202212)
 const last_month_balance = ref(-88103)
@@ -120,7 +135,10 @@ function handleCurrentChange(page) {
     <router-link to="/">
       <button class="btn btn-outline-warning mb-2">回首頁</button>
     </router-link>
-    <p class="fw-bold">匯款紀錄查詢</p>
+    <p class="d-flex justify-content-between">
+      <span class="fw-bold">匯款紀錄查詢</span>
+      <span>結帳時間：{{ transaction_time }}</span>
+    </p>
     <p>*以下匯款明細，會因匯款入帳作業有 2 - 3 工作天的差異</p>
     查詢帳戶月份：
     <el-date-picker
