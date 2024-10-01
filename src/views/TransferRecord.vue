@@ -154,14 +154,14 @@ function handleCurrentChange(page) {
       </span>
     </p>
     <p>安全值金額：{{ formatNumber(low_balance) }}</p>
-    <el-table :data="paginatedData" stripe center>
-      <el-table-column prop="scheduled_date" label="系統入帳日" />
-      <el-table-column prop="remittance_amount" label="匯款金額">
+    <el-table :data="paginatedData" stripe>
+      <el-table-column align="center" prop="scheduled_date" label="交易日" />
+      <el-table-column align="center" prop="remittance_amount" label="匯款金額">
         <template #default="{ row }">
           <span>{{ formatNumber(row.remittance_amount) }}</span>
         </template>
       </el-table-column>
-      <el-table-column prop="note" label="備註" />
+      <el-table-column align="center" prop="note" label="交易方式" />
     </el-table>
 
     <p>
