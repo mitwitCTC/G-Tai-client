@@ -63,7 +63,7 @@ onMounted(() => {
     <router-link to="/">
       <button class="btn btn-outline-warning mb-2">回首頁</button>
     </router-link>
-    <p>對帳單&發票查詢</p>
+    <p class="fw-bold">對帳單&發票查詢</p>
     查詢帳戶月份：
     <el-date-picker
       v-model="search_month"
