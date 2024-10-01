@@ -1,1 +1,0 @@
-import{_ as o,c as r,a as n,b as s,w as a,F as l,r as c,o as d,d as u}from"./index-DRg0NaTr.js";const _={};function f(m,e){const t=c("router-link");return d(),r(l,null,[e[1]||(e[1]=n("h1",null,"加油記錄",-1)),s(t,{to:"/"},{default:a(()=>e[0]||(e[0]=[u("首頁")])),_:1})],64)}const p=o(_,[["render",f]]);export{p as default};
