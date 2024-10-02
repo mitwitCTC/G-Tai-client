@@ -282,8 +282,8 @@ function handleCurrentChange(page) {
       placeholder="請選擇查詢帳戶月份"
       @change="fetchFuelData"
     />
-    <div class="d-flex justify-content-between align-items-center mb-2">
-      <p>{{ current_month }}月份交易明細</p>
+    <div class="d-flex justify-content-between align-items-center my-3">
+      <p class="m-0">{{ current_month }}月份交易明細</p>
       <button class="btn btn-warning">匯出</button>
     </div>
     <el-table :data="paginatedData" stripe height="350">
