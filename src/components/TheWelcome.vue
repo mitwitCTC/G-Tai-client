@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 const navItems = ref([
   {
     name: '客戶資料',
@@ -22,10 +22,26 @@ const navItems = ref([
     icon_path: 'bi bi-card-checklist'
   }
 ])
+const company_info = ref({})
+function fetchCompanyInfo() {
+  company_info.value = {
+    customerId: '123',
+    customerName: '測試有限公司'
+  }
+}
+onMounted(() => {
+  fetchCompanyInfo()
+})
 </script>
 
 <template>
   <div class="container">
+    <div class="company-info mt-5">
+      <h3>
+        {{ company_info.customerName }}
+        <span>({{ company_info.customerId }})</span>
+      </h3>
+    </div>
     <ul class="nav-list mt-5">
       <li class="item" v-for="(item, index) in navItems" :key="index">
         <router-link :to="item.path">
