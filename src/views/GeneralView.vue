@@ -2,16 +2,16 @@
 import { ref } from 'vue'
 const company_info = ref([
   {
-    customerId: '123',
-    customerName: '測試有限公司',
-    vat_number: '12345678',
+    customerId: 'G2200756',
+    customerName: '捷乘交通有限公司',
+    vat_number: '75939529',
     contact_name: '陳經理',
     contact_tel: '02-12345678',
     contact_phone: '0909-123456',
     billing_contact: '林經理',
     billing_contact_phone: '0909-123123',
     settlement_data_email: 'test@gmail.com',
-    communication_address: '台北市中山區興安街',
+    communication_address: '900屏東縣屏東市迪化街29號',
     fax_number: '',
     Insufficient_Balance_SMS: false,
     subsidiary: [

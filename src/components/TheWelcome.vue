@@ -25,8 +25,8 @@ const navItems = ref([
 const company_info = ref({})
 function fetchCompanyInfo() {
   company_info.value = {
-    customerId: '123',
-    customerName: '測試有限公司'
+    customerId: 'G2200756',
+    customerName: '捷乘交通有限公司'
   }
 }
 onMounted(() => {
