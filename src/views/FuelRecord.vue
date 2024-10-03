@@ -34,7 +34,7 @@ const subtotal_data = ref([
 // 小計表格 label
 const subtotal_data_table_labels = computed(() => {
   // 計算前一個月份
-  const previous_month = current_month.value === 1 ? 12 : current_month.value - 1
+  const previous_month = current_month.value == 1 ? 12 : current_month.value - 1
   return [
     {
       label: `${current_month.value}月份餘額`,
