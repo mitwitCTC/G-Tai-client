@@ -94,7 +94,12 @@ const vehicle_status = ref(Math.floor(Math.random() * all_vehicle_status.value.l
                 </li>
               </ul>
             </span>
-            <span v-else>{{ value }}</span>
+            <span v-else>
+              <span v-if="key === 'Insufficient_Balance_SMS'">
+                {{ value ? '是' : '否' }}
+              </span>
+              <span v-else>{{ value }}</span>
+            </span>
           </td>
         </tr>
       </tbody>
