@@ -224,11 +224,11 @@ function formatNumber(value) {
 // 分頁相關
 const pageSize = ref(5) // 每頁顯示的筆數
 const currentPage = ref(1) // 當前頁碼
-const totalRecords = computed(() => fuel_record.value.length) // 總筆數
+const totalRecords = computed(() => filteredFuelData.value.length) // 總筆數
 const paginatedData = computed(() => {
   const start = (currentPage.value - 1) * pageSize.value
   const end = start + pageSize.value
-  return fuel_record.value.slice(start, end)
+  return filteredFuelData.value.slice(start, end)
 })
 
 // 改變每頁顯示的筆數
@@ -241,6 +241,16 @@ function handleSizeChange(size) {
 function handleCurrentChange(page) {
   currentPage.value = page
 }
+
+const plate = ref('')
+// 以車牌搜尋加油交易明細
+const filteredFuelData = computed(() => {
+  const trimmedPlate = plate.value.trim()
+  if (trimmedPlate === '') {
+    return fuel_record.value
+  }
+  return fuel_record.value.filter((item) => item.plate.includes(trimmedPlate))
+})
 
 // 匯出
 function exportExcel() {
@@ -377,6 +387,11 @@ function exportExcel() {
       <p class="m-0">{{ current_month }}月份交易明細</p>
       <button class="btn btn-warning" @click="exportExcel">匯出</button>
     </div>
+
+    <div class="search d-flex mb-3 col-12 col-md-3">
+      <el-input v-model="plate" placeholder="請輸入車牌搜尋" clearable></el-input>
+    </div>
+
     <el-table :data="paginatedData" stripe height="350">
       <el-table-column align="center" min-width="110" prop="team" label="使用單位(對帳單組別)" />
       <el-table-column
@@ -425,7 +440,7 @@ function exportExcel() {
         </template>
       </el-table-column>
     </el-table>
-    <el-table class="d-none" :data="fuel_record" id="fuel_data">
+    <el-table class="d-none" :data="filteredFuelData" id="fuel_data">
       <el-table-column align="center" min-width="110" prop="team" label="使用單位(對帳單組別)" />
       <el-table-column
         align="center"
