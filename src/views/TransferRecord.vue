@@ -21,10 +21,59 @@ const options = {
   hour12: false
 }
 
-const current_month_balance = ref(0)
-const last_month_balance = ref(0)
-const current_month_remittance_amount = ref(0)
-const current_month_fuel_total = ref(0)
+const subtotal_data = ref([
+  {
+    current_month_balance: 0,
+    last_month_balance: 0,
+    current_month_remittance_amount: 0,
+    current_month_fuel_total: 0
+  }
+])
+// 小計表格 label
+const subtotal_data_table_labels = computed(() => {
+  // 計算前一個月份
+  const previous_month = current_month.value == 1 ? 12 : current_month.value - 1
+  return [
+    {
+      label: `${current_month.value}月份餘額`,
+      prop: 'current_month_balance'
+    },
+    {
+      label: '',
+      prop: 'equal_sign'
+    },
+    {
+      label: `${previous_month}月份餘額`,
+      prop: 'last_month_balance'
+    },
+    {
+      label: '',
+      prop: 'plus_sign'
+    },
+    {
+      label: `${current_month.value}月份匯款`,
+      prop: 'current_month_remittance_amount'
+    },
+    {
+      label: '',
+      prop: 'minus_sign'
+    },
+    {
+      label: `${current_month.value}月份加油小計`,
+      prop: 'current_month_fuel_total'
+    }
+  ]
+})
+// 取得匯款加油小計
+function fetchSubtotalData() {
+  subtotal_data.value[0] = {
+    current_month_balance: -202212,
+    last_month_balance: -88103,
+    current_month_remittance_amount: 1633000,
+    current_month_fuel_total: 1747109
+  }
+}
+
 const low_balance = ref(200000)
 
 const transfer_record = ref([])
@@ -34,10 +83,7 @@ function fetchTransferData() {
   console.log(transfer_search_month.value)
   updateCurrentMonth()
   transaction_time.value = new Intl.DateTimeFormat('en-CA', options).format(today).replace(',', '')
-  current_month_balance.value = -202212
-  last_month_balance.value = -88103
-  current_month_remittance_amount.value = 1633000
-  current_month_fuel_total.value = 1747109
+  fetchSubtotalData()
   transfer_record.value = [
     {
       scheduled_date: '2024-08-07',
@@ -94,11 +140,6 @@ function updateCurrentMonth() {
     current_month.value = ''
   }
 }
-// 計算前一個月份
-const previous_month = computed(() => {
-  const month = parseInt(current_month.value)
-  return month === 1 ? 12 : month - 1
-})
 
 watch(transfer_search_month, () => {
   fetchTransferData()
@@ -144,6 +185,28 @@ function handleCurrentChange(page) {
       <span>結帳時間：{{ transaction_time }}</span>
     </p>
     <p>*以下匯款明細，會因匯款入帳作業有 2 - 3 工作天的差異</p>
+    <el-table class="mb-3" border :data="subtotal_data">
+      <el-table-column
+        align="center"
+        :min-width="
+          item.prop === 'equal_sign' || item.prop === 'plus_sign' || item.prop === 'minus_sign'
+            ? '50'
+            : '130'
+        "
+        v-for="(item, index) in subtotal_data_table_labels"
+        :key="index"
+        :label="item.label"
+      >
+        <template #default="scope">
+          <!-- 判斷符號欄位 -->
+          <span v-if="item.prop === 'equal_sign'">=</span>
+          <span v-else-if="item.prop === 'plus_sign'">+</span>
+          <span v-else-if="item.prop === 'minus_sign'">-</span>
+          <!-- 渲染數值 -->
+          <span v-else>{{ scope.row[item.prop] }}</span>
+        </template>
+      </el-table-column>
+    </el-table>
     查詢帳戶月份：
     <el-date-picker
       v-model="transfer_search_month"
@@ -153,29 +216,7 @@ function handleCurrentChange(page) {
       placeholder="請選擇查詢帳戶月份"
       @change="fetchTransferData"
     />
-    <p v-if="current_month">
-      <br />
-      <span>{{ current_month }}月份餘額：</span>
-      <span class="text-primary fw-bold">
-        {{ formatNumber(current_month_balance) }}
-      </span>
-      <span>=</span>
-      <span>{{ previous_month }}月份餘額</span>
-      <span class="text-primary fw-bold">
-        {{ formatNumber(last_month_balance) }}
-      </span>
-      <span>+</span>
-      <span>{{ current_month }}月份匯款</span>
-      <span class="text-primary fw-bold">
-        {{ formatNumber(current_month_remittance_amount) }}
-      </span>
-      <span>-</span>
-      <span>{{ current_month }}月份加油小計</span>
-      <span class="text-primary fw-bold">
-        {{ formatNumber(current_month_fuel_total) }}
-      </span>
-    </p>
-    <p>安全值金額：{{ formatNumber(low_balance) }}</p>
+    <p class="my-3">安全值金額：{{ formatNumber(low_balance) }}</p>
     <el-table :data="paginatedData" stripe height="350">
       <el-table-column align="center" prop="scheduled_date" label="交易日" />
       <el-table-column align="center" prop="remittance_amount" label="匯款金額">
