@@ -87,46 +87,55 @@ function fetchTransferData() {
   transfer_record.value = [
     {
       scheduled_date: '2024-08-07',
+      checkoutTime: '2024-08-10',
       remittance_amount: 343000,
       note: '刷卡'
     },
     {
       scheduled_date: '2024-08-05',
+      checkoutTime: '2024-08-08',
       remittance_amount: 800000,
       note: '匯款'
     },
     {
       scheduled_date: '2024-08-01',
+      checkoutTime: '2024-08-04',
       remittance_amount: 490000,
       note: '刷卡'
     },
     {
       scheduled_date: '2024-07-25',
+      checkoutTime: '2024-07-28',
       remittance_amount: 500000,
       note: '刷卡'
     },
     {
       scheduled_date: '2024-07-21',
+      checkoutTime: '2024-07-24',
       remittance_amount: 300000,
       note: '刷卡'
     },
     {
       scheduled_date: '2024-07-15',
+      checkoutTime: '2024-07-18',
       remittance_amount: 390000,
       note: '刷卡'
     },
     {
       scheduled_date: '2024-07-08',
+      checkoutTime: '2024-07-11',
       remittance_amount: 300000,
       note: '刷卡'
     },
     {
       scheduled_date: '2024-07-05',
+      checkoutTime: '2024-07-08',
       remittance_amount: 600000,
       note: '刷卡'
     },
     {
       scheduled_date: '2024-07-01',
+      checkoutTime: '2024-07-04',
       remittance_amount: 300000,
       note: '刷卡'
     }
@@ -219,6 +228,7 @@ function handleCurrentChange(page) {
     <p class="my-3">安全值金額：{{ formatNumber(low_balance) }}</p>
     <el-table :data="paginatedData" stripe height="350">
       <el-table-column align="center" prop="scheduled_date" label="交易日" />
+      <el-table-column align="center" prop="checkoutTime" label="結帳日" />
       <el-table-column align="center" prop="remittance_amount" label="匯款金額">
         <template #default="{ row }">
           <span>{{ formatNumber(row.remittance_amount) }}</span>
