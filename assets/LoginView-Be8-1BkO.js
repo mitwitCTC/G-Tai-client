@@ -1,1 +1,0 @@
-import{_ as o,c as n,a as r,b as s,w as a,F as l,r as c,o as _,d}from"./index-C_Khs5-E.js";const i={};function u(f,e){const t=c("router-link");return _(),n(l,null,[e[1]||(e[1]=r("h1",null,"登入",-1)),s(t,{to:"/"},{default:a(()=>e[0]||(e[0]=[d("首頁")])),_:1})],64)}const p=o(i,[["render",u]]);export{p as default};
