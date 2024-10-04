@@ -1,4 +1,5 @@
 <script setup>
+import router from '@/router'
 import { ref, onMounted } from 'vue'
 const navItems = ref([
   {
@@ -32,15 +33,21 @@ function fetchCompanyInfo() {
 onMounted(() => {
   fetchCompanyInfo()
 })
+
+function logout() {
+  sessionStorage.removeItem('token')
+  router.push('/login')
+}
 </script>
 
 <template>
   <div class="container">
-    <div class="company-info mt-5">
+    <div class="company-info mt-5 d-flex justify-content-between align-itemns-center">
       <h3>
         {{ company_info.customerName }}
         <span>({{ company_info.customerId }})</span>
       </h3>
+      <button class="btn btn-outline-warning" @click="logout">登出</button>
     </div>
     <ul class="nav-list mt-5">
       <li class="item" v-for="(item, index) in navItems" :key="index">

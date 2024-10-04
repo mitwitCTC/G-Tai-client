@@ -1,5 +1,6 @@
 <script setup>
 import { ref, watch, computed, onMounted } from 'vue'
+import router from '@/router'
 
 // 預設當月
 const today = new Date()
@@ -208,13 +209,21 @@ function handleSizeChange(size) {
 function handleCurrentChange(page) {
   currentPage.value = page
 }
+
+function logout() {
+  sessionStorage.removeItem('token')
+  router.push('/login')
+}
 </script>
 
 <template>
   <div class="container mt-5">
-    <router-link to="/">
-      <button class="btn btn-outline-warning mb-2">回首頁</button>
-    </router-link>
+    <div class="d-flex justify-content-between align-items-center">
+      <router-link to="/">
+        <button class="btn btn-outline-warning mb-2">回首頁</button>
+      </router-link>
+      <button class="btn btn-outline-warning" @click="logout">登出</button>
+    </div>
     <p class="d-flex justify-content-between">
       <span class="fw-bold">匯款紀錄查詢</span>
       <span>結帳時間：{{ transaction_time }}</span>

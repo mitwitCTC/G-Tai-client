@@ -1,5 +1,7 @@
 <script setup>
 import { ref, watch, onMounted } from 'vue'
+import router from '@/router'
+
 // 預設當月
 const today = new Date()
 const currentYear = today.getFullYear()
@@ -56,13 +58,21 @@ watch(search_month, () => {
 onMounted(() => {
   search()
 })
+
+function logout() {
+  sessionStorage.removeItem('token')
+  router.push('/login')
+}
 </script>
 
 <template>
   <div class="container mt-5">
-    <router-link to="/">
-      <button class="btn btn-outline-warning mb-2">回首頁</button>
-    </router-link>
+    <div class="d-flex justify-content-between align-items-center">
+      <router-link to="/">
+        <button class="btn btn-outline-warning mb-2">回首頁</button>
+      </router-link>
+      <button class="btn btn-outline-warning" @click="logout">登出</button>
+    </div>
     <p class="fw-bold">對帳單&發票查詢</p>
     查詢帳戶月份：
     <el-date-picker

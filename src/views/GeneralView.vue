@@ -1,5 +1,6 @@
 <script setup>
 import { ref } from 'vue'
+import router from '@/router'
 const company_info = ref([
   {
     customerId: 'G2200756',
@@ -73,13 +74,22 @@ const all_vehicle_status = ref([
 ])
 
 const vehicle_status = ref(Math.floor(Math.random() * all_vehicle_status.value.length))
+
+// 登出
+function logout() {
+  sessionStorage.removeItem('token')
+  router.push('/login')
+}
 </script>
 
 <template>
   <div class="container mt-5">
-    <router-link to="/">
-      <button class="btn btn-outline-warning mb-2">回首頁</button>
-    </router-link>
+    <div class="d-flex justify-content-between align-items-center">
+      <router-link to="/">
+        <button class="btn btn-outline-warning mb-2">回首頁</button>
+      </router-link>
+      <button class="btn btn-outline-warning" @click="logout">登出</button>
+    </div>
     <table class="table">
       <tbody v-for="(item, index) in company_info" :key="index">
         <tr v-for="(value, key) in item" :key="key">
