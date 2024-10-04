@@ -1,17 +1,42 @@
 <script setup>
+import router from '@/router'
 import { ref } from 'vue'
 
 const loginForm = ref({
   account: '',
   password: ''
 })
+const login_result = ref('')
 
 function submitForm() {
-  console.log(loginForm.value)
+  if (loginForm.value.account == '' || loginForm.value.password == '') {
+    login_result.value = '帳號密碼不得為空！'
+  } else if (loginForm.value.account == 'admin1' && loginForm.value.password == '1234') {
+    login_result.value = '登入成功'
+    sessionStorage.setItem('token', '1')
+    router.push('/')
+  } else if (loginForm.value.account == 'admin2' && loginForm.value.password == '1234') {
+    login_result.value = '登入成功'
+    sessionStorage.setItem('token', '2')
+    router.push('/')
+  } else {
+    login_result.value = '帳號或密碼錯誤'
+  }
+
+  setTimeout(() => {
+    login_result.value = ''
+  }, 2000)
 }
 </script>
 
 <template>
+  <el-alert
+    v-if="login_result"
+    :title="login_result"
+    :type="login_result == '登入成功' ? 'success' : 'error'"
+    show-icon
+    class="mb-3"
+  />
   <div class="container d-flex justify-content-center">
     <div class="login-form mt-5 w-50">
       <h1 class="text-center my-3">鉅泰創新</h1>
