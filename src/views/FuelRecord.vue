@@ -23,48 +23,57 @@ const options = {
   hour12: false
 }
 
-const subtotal_data = ref([
-  {
-    current_month_balance: 0,
-    last_month_balance: 0,
-    current_month_remittance_amount: 0,
-    current_month_fuel_total: 0
-  }
-])
+const subtotal_data = ref([])
 // 小計表格 label
 const subtotal_data_table_labels = computed(() => {
-  // 計算前一個月份
-  const previous_month = current_month.value == 1 ? 12 : current_month.value - 1
-  return [
-    {
-      label: `${current_month.value}月份餘額`,
-      prop: 'current_month_balance'
-    },
-    {
-      label: '',
-      prop: 'equal_sign'
-    },
-    {
-      label: `${previous_month}月份餘額`,
-      prop: 'last_month_balance'
-    },
-    {
-      label: '',
-      prop: 'plus_sign'
-    },
-    {
-      label: `${current_month.value}月份匯款`,
-      prop: 'current_month_remittance_amount'
-    },
-    {
-      label: '',
-      prop: 'minus_sign'
-    },
-    {
-      label: `${current_month.value}月份加油小計`,
-      prop: 'current_month_fuel_total'
-    }
-  ]
+  // 儲值方式的資訊
+  if (transaction_mode.value == 1) {
+    // 計算前一個月份
+    const previous_month = current_month.value == 1 ? 12 : current_month.value - 1
+    return [
+      {
+        label: `${current_month.value}月份餘額`,
+        prop: 'current_month_balance'
+      },
+      {
+        label: '',
+        prop: 'equal_sign'
+      },
+      {
+        label: `${previous_month}月份餘額`,
+        prop: 'last_month_balance'
+      },
+      {
+        label: '',
+        prop: 'plus_sign'
+      },
+      {
+        label: `${current_month.value}月份匯款`,
+        prop: 'current_month_remittance_amount'
+      },
+      {
+        label: '',
+        prop: 'minus_sign'
+      },
+      {
+        label: `${current_month.value}月份加油小計`,
+        prop: 'current_month_fuel_total'
+      }
+    ]
+    // 月結方式的資訊
+  } else if (transaction_mode.value == 2) {
+    return [
+      {
+        label: '擔保品',
+        prop: 'collateral_item'
+      },
+      {
+        label: '擔保品價值',
+        prop: 'collateral_value'
+      }
+    ]
+  }
+  return ''
 })
 
 const fuel_record = ref([])
@@ -193,13 +202,29 @@ function fetchFuelData() {
 
 // 取得匯款加油小計
 function fetchSubtotalData() {
-  subtotal_data.value[0] = {
-    current_month_balance: -202212,
-    last_month_balance: -88103,
-    current_month_remittance_amount: 1633000,
-    current_month_fuel_total: 1747109
+  if (transaction_mode.value == 1) {
+    subtotal_data.value[0] = {
+      current_month_balance: -202212,
+      last_month_balance: -88103,
+      current_month_remittance_amount: 1633000,
+      current_month_fuel_total: 1747109
+    }
+  } else if (transaction_mode.value == 2) {
+    subtotal_data.value[0] = {
+      collateral_item: '現金',
+      collateral_value: 50000
+    }
   }
 }
+
+// 確認交易方式為儲值或月結 (1為儲值；2為月結)
+const transaction_mode = ref('')
+function checkTransaction_mode() {
+  transaction_mode.value = sessionStorage.getItem('token')
+}
+onMounted(() => {
+  checkTransaction_mode()
+})
 
 function updateCurrentMonth() {
   if (search_month.value) {
@@ -371,7 +396,9 @@ function exportExcel() {
           <span v-else-if="item.prop === 'plus_sign'">+</span>
           <span v-else-if="item.prop === 'minus_sign'">-</span>
           <!-- 渲染數值 -->
-          <span v-else>{{ scope.row[item.prop] }}</span>
+          <span v-else>
+            {{ formatNumber(scope.row[item.prop]) }}
+          </span>
         </template>
       </el-table-column>
     </el-table>
