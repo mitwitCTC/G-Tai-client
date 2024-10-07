@@ -6,14 +6,14 @@ const company_info = ref([
     customerId: 'G2200756',
     customerName: '捷乘交通有限公司',
     vat_number: '75939529',
+    company_tel: '02-12345678',
+    fax_number: '02-12341234',
     contact_name: '陳經理',
-    contact_tel: '02-12345678',
-    contact_phone: '0909-123456',
-    billing_contact: '林經理',
-    billing_contact_phone: '0909-123123',
-    settlement_data_email: 'test@gmail.com',
-    communication_address: '900屏東縣屏東市迪化街29號',
-    fax_number: '',
+    contact_tel: '0909-123456',
+    auditor_name: '林經理',
+    auditor_phone: '02-11112222',
+    email: 'test@gmail.com',
+    delivery_address: '900屏東縣屏東市迪化街29號',
     Insufficient_Balance_SMS: false,
     subsidiary: [
       {
@@ -32,16 +32,16 @@ function formatLabel(key) {
     customerId: '客戶編號',
     customerName: '客戶名稱',
     vat_number: '統一編號',
-    contact_name: '聯絡人姓名',
-    contact_tel: '聯絡人電話',
-    contact_phone: '聯絡人手機',
-    billing_contact: '開立發票聯絡人',
-    billing_contact_phone: '發票聯絡人電話',
-    settlement_data_email: '結算資料Email',
-    communication_address: '聯絡地址',
-    fax_number: '傳真號碼',
-    Insufficient_Balance_SMS: '餘額不足簡訊',
-    subsidiary: '子公司統編/名稱'
+    company_tel: '公司電話',
+    fax_number: '傳真電話',
+    contact_name: '承辦窗口',
+    contact_tel: '承辦電話',
+    auditor_name: '帳務窗口',
+    auditor_phone: '帳務電話',
+    email: 'E-MAIL',
+    delivery_address: '郵寄地址',
+    Insufficient_Balance_SMS: '餘額不足通知',
+    subsidiary: '分公司使用單位/統編'
   }
   return labels[key] || key
 }
