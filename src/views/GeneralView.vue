@@ -18,11 +18,11 @@ const company_info = ref([
     subsidiary: [
       {
         vat_number: '11111111',
-        name: '測試子公司一'
+        name: '泰樂-採訪車'
       },
       {
         vat_number: '22222222',
-        name: '測試子公司二'
+        name: '泰樂-採訪車'
       }
     ]
   }
@@ -98,9 +98,9 @@ function logout() {
             <span v-if="Array.isArray(value)">
               <ul>
                 <li v-for="(sub, subIndex) in value" :key="subIndex">
-                  統編：{{ sub.vat_number }}
-                  <br />
                   {{ sub.name }}
+                  <br />
+                  統編：{{ sub.vat_number }}
                 </li>
               </ul>
             </span>
