@@ -65,12 +65,16 @@ const subtotal_data_table_labels = computed(() => {
   } else if (transaction_mode.value == 2) {
     return [
       {
-        label: '擔保品',
+        label: '擔保品種類',
         prop: 'collateral_item'
       },
       {
-        label: '擔保品價值',
+        label: '擔保品額度',
         prop: 'collateral_value'
+      },
+      {
+        label: '款項繳費期限',
+        prop: 'payment_deadline'
       }
     ]
   }
@@ -213,7 +217,8 @@ function fetchSubtotalData() {
   } else if (transaction_mode.value == 2) {
     subtotal_data.value[0] = {
       collateral_item: '現金',
-      collateral_value: 50000
+      collateral_value: 50000,
+      payment_deadline: '每月15日前'
     }
   }
 }
