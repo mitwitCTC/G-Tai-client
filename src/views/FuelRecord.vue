@@ -431,7 +431,7 @@ function logout() {
     </div>
 
     <el-table :data="paginatedData" stripe height="350">
-      <el-table-column align="center" min-width="110" prop="team" label="使用單位(對帳單組別)" />
+      <el-table-column align="center" min-width="110" prop="team" label="使用單位" />
       <el-table-column
         align="center"
         min-width="110"
@@ -449,7 +449,7 @@ function logout() {
       <el-table-column align="center" min-width="110" prop="plate" label="車牌號碼" />
       <el-table-column align="center" min-width="130" prop="station" label="加油站" />
       <el-table-column align="center" min-width="110" prop="product_name" label="產品名稱" />
-      <el-table-column align="center" min-width="110" prop="quantity" label="數量(公升)" />
+      <el-table-column align="center" min-width="110" prop="quantity" label="數量" />
       <el-table-column align="center" min-width="70" prop="unit_price" label="單價" />
       <el-table-column align="center" min-width="70" prop="discount" label="折讓" />
       <el-table-column align="center" min-width="110" prop="list_price_subtotal" label="牌價小計">
