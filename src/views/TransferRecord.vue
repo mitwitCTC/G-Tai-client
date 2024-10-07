@@ -113,6 +113,36 @@ function fetchTransferData() {
   fetchSubtotalData()
   transfer_record.value = [
     {
+      scheduled_date: '2024-08-25',
+      checkoutTime: '2024-08-28',
+      remittance_amount: 500000,
+      note: '刷卡'
+    },
+    {
+      scheduled_date: '2024-08-21',
+      checkoutTime: '2024-08-24',
+      remittance_amount: 300000,
+      note: '刷卡'
+    },
+    {
+      scheduled_date: '2024-08-15',
+      checkoutTime: '2024-08-18',
+      remittance_amount: 390000,
+      note: '刷卡'
+    },
+    {
+      scheduled_date: '2024-08-08',
+      checkoutTime: '2024-08-11',
+      remittance_amount: 300000,
+      note: '刷卡'
+    },
+    {
+      scheduled_date: '2024-08-06',
+      checkoutTime: '2024-08-09',
+      remittance_amount: 600000,
+      note: '刷卡'
+    },
+    {
       scheduled_date: '2024-08-07',
       checkoutTime: '2024-08-10',
       remittance_amount: 343000,
@@ -125,44 +155,14 @@ function fetchTransferData() {
       note: '匯款'
     },
     {
-      scheduled_date: '2024-08-01',
-      checkoutTime: '2024-08-04',
+      scheduled_date: '2024-08-02',
+      checkoutTime: '2024-08-05',
       remittance_amount: 490000,
       note: '刷卡'
     },
     {
-      scheduled_date: '2024-07-25',
-      checkoutTime: '2024-07-28',
-      remittance_amount: 500000,
-      note: '刷卡'
-    },
-    {
-      scheduled_date: '2024-07-21',
-      checkoutTime: '2024-07-24',
-      remittance_amount: 300000,
-      note: '刷卡'
-    },
-    {
-      scheduled_date: '2024-07-15',
-      checkoutTime: '2024-07-18',
-      remittance_amount: 390000,
-      note: '刷卡'
-    },
-    {
-      scheduled_date: '2024-07-08',
-      checkoutTime: '2024-07-11',
-      remittance_amount: 300000,
-      note: '刷卡'
-    },
-    {
-      scheduled_date: '2024-07-05',
-      checkoutTime: '2024-07-08',
-      remittance_amount: 600000,
-      note: '刷卡'
-    },
-    {
-      scheduled_date: '2024-07-01',
-      checkoutTime: '2024-07-04',
+      scheduled_date: '2024-08-01',
+      checkoutTime: '2024-08-04',
       remittance_amount: 300000,
       note: '刷卡'
     }
@@ -187,27 +187,6 @@ onMounted(() => {
 // 格式化數字
 function formatNumber(value) {
   return value.toLocaleString('en-US')
-}
-
-// 分頁相關
-const pageSize = ref(5) // 每頁顯示的筆數
-const currentPage = ref(1) // 當前頁碼
-const totalRecords = computed(() => transfer_record.value.length) // 總筆數
-const paginatedData = computed(() => {
-  const start = (currentPage.value - 1) * pageSize.value
-  const end = start + pageSize.value
-  return transfer_record.value.slice(start, end)
-})
-
-// 改變每頁顯示的筆數
-function handleSizeChange(size) {
-  pageSize.value = size
-  currentPage.value = 1 // 重置到第一頁
-}
-
-// 改變當前頁碼
-function handleCurrentChange(page) {
-  currentPage.value = page
 }
 
 function logout() {
@@ -263,7 +242,7 @@ function logout() {
       @change="fetchTransferData"
     />
     <p class="my-3">安全值金額：{{ formatNumber(low_balance) }}</p>
-    <el-table :data="paginatedData" stripe height="350">
+    <el-table :data="transfer_record" stripe height="350">
       <el-table-column align="center" prop="scheduled_date" label="交易日" />
       <el-table-column align="center" prop="checkoutTime" label="結帳日" />
       <el-table-column align="center" prop="remittance_amount" label="匯款金額">
@@ -273,23 +252,6 @@ function logout() {
       </el-table-column>
       <el-table-column align="center" prop="note" label="交易方式" />
     </el-table>
-
-    <p>
-      顯示第 {{ (currentPage - 1) * pageSize + 1 }} 項 到 第
-      {{ Math.min(currentPage * pageSize, totalRecords) }} 項 (共 {{ totalRecords }} 項)
-    </p>
-    <el-pagination
-      background
-      layout="sizes, prev, pager, next"
-      :page-sizes="[3, 5, 10]"
-      :page-size="pageSize"
-      :show-sizes="false"
-      :total="totalRecords"
-      :current-page="currentPage"
-      @size-change="handleSizeChange"
-      @current-change="handleCurrentChange"
-    >
-    </el-pagination>
   </div>
 </template>
 
