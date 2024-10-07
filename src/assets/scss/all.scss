@@ -13,3 +13,15 @@ a {
     text-decoration: none;
     color: black;
 }
+
+.btn-yellow {
+    border: 2px solid $yellow-500;
+    color: $yellow-500;
+    font-weight: bold;
+
+    &:hover {
+        border: 2px solid $yellow-500;
+        background-color: $yellow-500;
+        color: white;
+    }
+}

@@ -47,7 +47,7 @@ function logout() {
         {{ company_info.customerName }}
         <span>({{ company_info.customerId }})</span>
       </h3>
-      <button class="btn btn-outline-warning" @click="logout">登出</button>
+      <button class="btn btn-yellow" @click="logout">登出</button>
     </div>
     <ul class="nav-list mt-5">
       <li class="item" v-for="(item, index) in navItems" :key="index">

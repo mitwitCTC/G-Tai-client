@@ -69,9 +69,9 @@ function logout() {
   <div class="container mt-5">
     <div class="d-flex justify-content-between align-items-center">
       <router-link to="/">
-        <button class="btn btn-outline-warning mb-2">回首頁</button>
+        <button class="btn btn-yellow mb-2">回首頁</button>
       </router-link>
-      <button class="btn btn-outline-warning" @click="logout">登出</button>
+      <button class="btn btn-yellow" @click="logout">登出</button>
     </div>
     <p class="fw-bold">對帳單&發票查詢</p>
     查詢帳戶月份：
