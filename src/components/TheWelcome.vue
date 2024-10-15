@@ -1,4 +1,5 @@
 <script setup>
+import { useCompanyStore } from '@/stores/companyStore'
 import router from '@/router'
 import { ref, onMounted } from 'vue'
 const navItems = ref([
@@ -23,12 +24,14 @@ const navItems = ref([
     icon_path: 'bi bi-card-checklist'
   }
 ])
-const company_info = ref({})
+const companyStore = useCompanyStore()
+// const company_info = ref({})
 function fetchCompanyInfo() {
-  company_info.value = {
-    customerId: 'G2200756',
-    customerName: '捷乘交通有限公司'
+  const company_info = {
+    customerId: 'G2100015',
+    customerName: '日星交通事業有限公司'
   }
+  companyStore.setCompanyInfo(company_info)
 }
 onMounted(() => {
   fetchCompanyInfo()
@@ -44,8 +47,8 @@ function logout() {
   <div class="container">
     <div class="company-info mt-5 d-flex justify-content-between align-itemns-center">
       <h3>
-        {{ company_info.customerName }}
-        <span>({{ company_info.customerId }})</span>
+        {{ companyStore.company_info.customerName }}
+        <span>({{ companyStore.company_info.customerId }})</span>
       </h3>
       <button class="btn btn-yellow" @click="logout">登出</button>
     </div>
