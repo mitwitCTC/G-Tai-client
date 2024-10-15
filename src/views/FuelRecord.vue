@@ -170,6 +170,7 @@ function updateCurrentMonth() {
 
 watch(search_month, () => {
   fetchFuelData()
+  plate.value = ''
 })
 onMounted(() => {
   fetchFuelData()
