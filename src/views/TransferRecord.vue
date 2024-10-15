@@ -1,4 +1,6 @@
 <script setup>
+import { useCompanyStore } from '@/stores/companyStore'
+const companyStore = useCompanyStore()
 import { ref, watch, computed, onMounted } from 'vue'
 import router from '@/router'
 
@@ -8,19 +10,24 @@ const currentYear = today.getFullYear()
 const current_month = ref(String(today.getMonth() + 1).padStart(2, '0'))
 const transfer_search_month = ref(`${currentYear}-${current_month.value}`)
 
+// API 根路由
+import apiClient from '@/api' // 載入 apiClient
 // 結帳時間
 const transaction_time = ref('')
-// 台北時間格式
-const options = {
-  timeZone: 'Asia/Taipei',
-  year: 'numeric',
-  month: '2-digit',
-  day: '2-digit',
-  hour: '2-digit',
-  minute: '2-digit',
-  second: '2-digit',
-  hour12: false
+// 取得結帳時間
+async function fetchTransactionTime() {
+  try {
+    const response = await apiClient.post('/main/lastUpdateTime', {
+      customerId: companyStore.company_info.customerId
+    })
+    transaction_time.value = response.data.data
+  } catch (error) {
+    console.error(error)
+  }
 }
+onMounted(() => {
+  fetchTransactionTime()
+})
 
 const subtotal_data = ref([])
 // 小計表格 label
@@ -109,7 +116,6 @@ const transfer_record = ref([])
 function fetchTransferData() {
   console.log(transfer_search_month.value)
   updateCurrentMonth()
-  transaction_time.value = new Intl.DateTimeFormat('en-CA', options).format(today).replace(',', '')
   fetchSubtotalData()
   transfer_record.value = [
     {
