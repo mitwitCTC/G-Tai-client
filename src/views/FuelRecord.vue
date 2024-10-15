@@ -205,7 +205,7 @@ function handleCurrentChange(page) {
 const plate = ref('')
 // 以車牌搜尋加油交易明細
 const filteredFuelData = computed(() => {
-  const trimmedPlate = plate.value.trim()
+  const trimmedPlate = plate.value.trim().toUpperCase()
   if (trimmedPlate === '') {
     return fuel_record.value
   }
