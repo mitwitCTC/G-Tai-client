@@ -96,125 +96,34 @@ const subtotal_data_table_labels = computed(() => {
 const fuel_record = ref([])
 
 // 搜尋加油紀錄
-function fetchFuelData() {
-  console.log(search_month.value)
+async function fetchFuelData() {
   updateCurrentMonth()
   fetchSubtotalData()
-  update_time.value = new Intl.DateTimeFormat('en-CA', options).format(today).replace(',', '')
-  fuel_record.value = [
-    {
-      team: '泰樂-採訪車',
-      transaction_date: '2024-07-28',
-      transaction_time: '10:56:00',
-      plate: 'AAA-1111',
-      station: '蘆洲站',
-      product_name: '92無鉛汽油',
-      quantity: 48.9,
-      unit_price: 31,
-      discount: 1,
-      list_price_subtotal: 1516,
-      discount_subtotal: 49,
-      subtotal: 1467,
-      mileage: 195528,
-      fuel_consumption: 0
-    },
-    {
-      team: '泰樂-採訪車',
-      transaction_date: '2024-07-27',
-      transaction_time: '13:02:00',
-      plate: 'AAA-2222',
-      station: '中壢服務區站',
-      product_name: '超級柴油',
-      quantity: 169.81,
-      unit_price: 27,
-      discount: 1.3,
-      list_price_subtotal: 4585,
-      discount_subtotal: 221,
-      subtotal: 4364,
-      mileage: 209524,
-      fuel_consumption: 0
-    },
-    {
-      team: '泰樂-採訪車',
-      transaction_date: '2024-07-27',
-      transaction_time: '11:52:00',
-      plate: 'AAA-3333',
-      station: '重陽橋加油站',
-      product_name: '超級柴油',
-      quantity: 83.7,
-      unit_price: 27,
-      discount: 1.3,
-      list_price_subtotal: 2260,
-      discount_subtotal: 109,
-      subtotal: 2151,
-      mileage: 40707,
-      fuel_consumption: 0
-    },
-    {
-      team: '泰樂-工程車',
-      transaction_date: '2024-07-31',
-      transaction_time: '13:08:00',
-      plate: '111-AA',
-      station: '蘆洲三民路',
-      product_name: '超級柴油',
-      quantity: 64.07,
-      unit_price: 27.3,
-      discount: 1.3,
-      list_price_subtotal: 1749,
-      discount_subtotal: 83,
-      subtotal: 1666,
-      mileage: 349068,
-      fuel_consumption: 0
-    },
-    {
-      team: '泰樂-工程車',
-      transaction_date: '2024-07-31',
-      transaction_time: '02:34:00',
-      plate: '222-AA',
-      station: '蘆洲三民路',
-      product_name: '超級柴油',
-      quantity: 37.26,
-      unit_price: 27.3,
-      discount: 1.3,
-      list_price_subtotal: 1017,
-      discount_subtotal: 48,
-      subtotal: 969,
-      mileage: 332373,
-      fuel_consumption: 0
-    },
-    {
-      team: '泰樂-工程車',
-      transaction_date: '2024-07-28',
-      transaction_time: '02:42:00',
-      plate: '333-AA',
-      station: '蘆洲三民路',
-      product_name: '超級柴油',
-      quantity: 25.92,
-      unit_price: 27,
-      discount: 1.3,
-      list_price_subtotal: 700,
-      discount_subtotal: 34,
-      subtotal: 666,
-      mileage: 332226,
-      fuel_consumption: 0
-    },
-    {
-      team: '泰樂-工程車',
-      transaction_date: '2024-07-30',
-      transaction_time: '17:47:00',
-      plate: '444-AA',
-      station: '信誠',
-      product_name: '超級柴油',
-      quantity: 160.99,
-      unit_price: 27.3,
-      discount: 1.3,
-      list_price_subtotal: 4395,
-      discount_subtotal: 209,
-      subtotal: 4186,
-      mileage: 123456,
-      fuel_consumption: 0
-    }
-  ]
+  fetchUpdateTime()
+  try {
+    const response = await apiClient.post('/main/balanceInquiry', {
+      date: search_month.value,
+      customerId: companyStore.company_info.customerId
+    })
+    fuel_record.value = response.data.data.map((item) => ({
+      team: `${item.acc_name}-${item.vehicle_type || ''}`,
+      transaction_date: item.trade_time.split(' ')[0].replace(/\//g, '-'),
+      transaction_time: item.trade_time.split(' ')[1],
+      plate: item.license_plate,
+      station: item.station_name,
+      product_name: '未知',
+      quantity: Number(item.fuel_volume) || 0,
+      unit_price: Number(item.reference_price) || 0,
+      discount: Number(item.discount) || 0,
+      list_price_subtotal: Number(item.reference_amount) || 0,
+      discount_subtotal: Number(item.discount_amount) || 0,
+      subtotal: Number(item.salesAmount) || 0,
+      mileage: Number(item.mileage) || 0,
+      fuel_consumption: Number(item.fuel_consumption) || 0
+    }))
+  } catch (error) {
+    console.error(error)
+  }
 }
 
 // 取得匯款加油小計
