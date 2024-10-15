@@ -1,4 +1,6 @@
 <script setup>
+import { useCompanyStore } from '@/stores/companyStore'
+const companyStore = useCompanyStore()
 import { ref, watch, computed, onMounted } from 'vue'
 import FileSaver from 'file-saver'
 import * as XLSX from 'xlsx'
@@ -10,6 +12,8 @@ const currentYear = today.getFullYear()
 const current_month = ref(String(today.getMonth() + 1).padStart(2, '0'))
 const search_month = ref(`${currentYear}-${current_month.value}`)
 
+// API 根路由
+import apiClient from '@/api' // 載入 apiClient
 // 最後更新時間
 const update_time = ref('')
 // 台北時間格式
@@ -24,7 +28,12 @@ const options = {
   hour12: false
 }
 
-const subtotal_data = ref([])
+const subtotal_data = ref({
+  current_month_balance: 0,
+  last_month_balance: 0,
+  current_month_remittance_amount: 0,
+  current_month_fuel_total: 0
+})
 // 小計表格 label
 const subtotal_data_table_labels = computed(() => {
   // 儲值方式的資訊
@@ -206,13 +215,20 @@ function fetchFuelData() {
 }
 
 // 取得匯款加油小計
-function fetchSubtotalData() {
+async function fetchSubtotalData() {
   if (transaction_mode.value == 1) {
-    subtotal_data.value[0] = {
-      current_month_balance: -202212,
-      last_month_balance: -88103,
-      current_month_remittance_amount: 1633000,
-      current_month_fuel_total: 1747109
+    try {
+      const response = await apiClient.post('/main/monthlyBalance', {
+        customerId: companyStore.company_info.customerId
+      })
+      subtotal_data.value.current_month_balance = Number(response.data.data[0].thisMonthOverage)
+      subtotal_data.value.last_month_balance = Number(response.data.data[0].overage)
+      subtotal_data.value.current_month_remittance_amount = Number(
+        response.data.data[0].creditAmount
+      )
+      subtotal_data.value.current_month_fuel_total = Number(response.data.data[0].salesAmount)
+    } catch (error) {
+      console.error(error)
     }
   } else if (transaction_mode.value == 2) {
     subtotal_data.value[0] = {
@@ -389,7 +405,7 @@ function logout() {
       <button class="btn btn-yellow" @click="logout">登出</button>
     </div>
     <p class="text-end">最後資料更新時間：{{ update_time }}</p>
-    <el-table class="mb-3" border :data="subtotal_data">
+    <el-table class="mb-3" border :data="[subtotal_data]">
       <el-table-column
         align="center"
         :min-width="
