@@ -29,7 +29,12 @@ onMounted(() => {
   fetchTransactionTime()
 })
 
-const subtotal_data = ref([])
+const subtotal_data = ref({
+  current_month_balance: 0,
+  last_month_balance: 0,
+  current_month_remittance_amount: 0,
+  current_month_fuel_total: 0
+})
 // 小計表格 label
 const subtotal_data_table_labels = computed(() => {
   // 儲值方式的資訊
@@ -83,13 +88,20 @@ const subtotal_data_table_labels = computed(() => {
 })
 
 // 取得匯款加油小計
-function fetchSubtotalData() {
+async function fetchSubtotalData() {
   if (transaction_mode.value == 1) {
-    subtotal_data.value[0] = {
-      current_month_balance: -202212,
-      last_month_balance: -88103,
-      current_month_remittance_amount: 1633000,
-      current_month_fuel_total: 1747109
+    try {
+      const response = await apiClient.post('/main/monthlyBalance', {
+        customerId: companyStore.company_info.customerId
+      })
+      subtotal_data.value.current_month_balance = Number(response.data.data[0].thisMonthOverage)
+      subtotal_data.value.last_month_balance = Number(response.data.data[0].overage)
+      subtotal_data.value.current_month_remittance_amount = Number(
+        response.data.data[0].creditAmount
+      )
+      subtotal_data.value.current_month_fuel_total = Number(response.data.data[0].salesAmount)
+    } catch (error) {
+      console.error(error)
     }
   } else if (transaction_mode.value == 2) {
     subtotal_data.value[0] = {
@@ -214,7 +226,7 @@ function logout() {
       <span>結帳時間：{{ transaction_time }}</span>
     </p>
     <p>*以下匯款明細，會因匯款入帳作業有 2 - 3 工作天的差異</p>
-    <el-table class="mb-3" border :data="subtotal_data">
+    <el-table class="mb-3" border :data="[subtotal_data]">
       <el-table-column
         align="center"
         :min-width="
