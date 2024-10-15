@@ -16,17 +16,20 @@ const search_month = ref(`${currentYear}-${current_month.value}`)
 import apiClient from '@/api' // 載入 apiClient
 // 最後更新時間
 const update_time = ref('')
-// 台北時間格式
-const options = {
-  timeZone: 'Asia/Taipei',
-  year: 'numeric',
-  month: '2-digit',
-  day: '2-digit',
-  hour: '2-digit',
-  minute: '2-digit',
-  second: '2-digit',
-  hour12: false
+// 取得最後更新時間
+async function fetchUpdateTime() {
+  try {
+    const response = await apiClient.post('/main/lastUpdateTime', {
+      customerId: companyStore.company_info.customerId
+    })
+    update_time.value = response.data.data
+  } catch (error) {
+    console.error(error)
+  }
 }
+onMounted(() => {
+  fetchUpdateTime()
+})
 
 const subtotal_data = ref({
   current_month_balance: 0,
