@@ -87,7 +87,7 @@ function logout() {
     <p>對帳單：</p>
     <ul>
       <li v-for="(item, index) in reconciliation_list" :key="index">
-        <a :href="item.url">{{ item.name }}</a>
+        <router-link to="/reconciliation-list">{{ item.name }}</router-link>
       </li>
     </ul>
     <p>發票：</p>

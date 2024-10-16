@@ -1,8 +1,8 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHashHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
 
 const router = createRouter({
-  history: createWebHistory(import.meta.env.BASE_URL),
+  history: createWebHashHistory(import.meta.env.BASE_URL),
   routes: [
     {
       path: '/',
@@ -33,6 +33,11 @@ const router = createRouter({
       path: '/reconciliation-invoice',
       name: 'ReconciliationAndInvoice',
       component: () => import('@/views/ReconciliationAndInvoice.vue')
+    },
+    {
+      path: '/reconciliation-list',
+      name: 'Reconciliation-list',
+      component: () => import('@/views/ReconciliationList.vue')
     }
   ]
 })
