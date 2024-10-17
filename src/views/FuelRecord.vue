@@ -31,6 +31,20 @@ onMounted(() => {
   fetchUpdateTime()
 })
 
+// loading 狀態
+const svg = `
+        <path class="path" d="
+          M 30 15
+          L 28 17
+          M 25.61 25.61
+          A 15 15, 0, 0, 1, 15 30
+          A 15 15, 0, 1, 1, 27.99 7.5
+          L 15 15
+        " style="stroke-width: 4px; fill: rgba(0, 0, 0, 0)"/>
+      `
+const isLoadingSubtotal_data = ref(false)
+const isLoadingFuel_record = ref(false)
+
 const subtotal_data = ref({
   current_month_balance: 0,
   last_month_balance: 0,
@@ -100,6 +114,7 @@ async function fetchFuelData() {
   updateCurrentMonth()
   fetchSubtotalData()
   fetchUpdateTime()
+  isLoadingFuel_record.value = true
   try {
     const response = await apiClient.post('/main/balanceInquiry', {
       date: search_month.value,
@@ -123,12 +138,15 @@ async function fetchFuelData() {
     }))
   } catch (error) {
     console.error(error)
+  } finally {
+    isLoadingFuel_record.value = false
   }
 }
 
 // 取得匯款加油小計
 async function fetchSubtotalData() {
   if (transaction_mode.value == 1) {
+    isLoadingSubtotal_data.value = true
     try {
       const response = await apiClient.post('/main/monthlyBalance', {
         customerId: companyStore.company_info.customerId
@@ -141,6 +159,8 @@ async function fetchSubtotalData() {
       subtotal_data.value.current_month_fuel_total = Number(response.data.data[0].salesAmount)
     } catch (error) {
       console.error(error)
+    } finally {
+      isLoadingSubtotal_data.value = false
     }
   } else if (transaction_mode.value == 2) {
     subtotal_data.value[0] = {
@@ -318,7 +338,7 @@ function logout() {
       <button class="btn btn-yellow" @click="logout">登出</button>
     </div>
     <p class="text-end">最後資料更新時間：{{ update_time }}</p>
-    <el-table class="mb-3" border :data="[subtotal_data]">
+    <el-table class="mb-3" border :data="[subtotal_data]" v-loading="isLoadingSubtotal_data">
       <el-table-column
         align="center"
         :min-width="
@@ -359,7 +379,16 @@ function logout() {
       <el-input v-model="plate" placeholder="請輸入車牌搜尋" clearable></el-input>
     </div>
 
-    <el-table :data="paginatedData" stripe height="350">
+    <el-table
+      :data="paginatedData"
+      stripe
+      height="350"
+      v-loading="isLoadingFuel_record"
+      element-loading-text="資料載入中..."
+      :element-loading-spinner="svg"
+      element-loading-svg-view-box="-10, -10, 50, 50"
+      element-loading-background="rgba(122, 122, 122, 0.8)"
+    >
       <el-table-column align="center" min-width="200" prop="team" label="使用單位" />
       <el-table-column
         align="center"

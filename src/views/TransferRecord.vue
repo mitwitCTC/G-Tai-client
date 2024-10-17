@@ -29,6 +29,20 @@ onMounted(() => {
   fetchTransactionTime()
 })
 
+// loading 狀態
+const svg = `
+        <path class="path" d="
+          M 30 15
+          L 28 17
+          M 25.61 25.61
+          A 15 15, 0, 0, 1, 15 30
+          A 15 15, 0, 1, 1, 27.99 7.5
+          L 15 15
+        " style="stroke-width: 4px; fill: rgba(0, 0, 0, 0)"/>
+      `
+const isLoadingSubtotal_data = ref(false)
+const isLoadingTransfer_record = ref(false)
+
 const subtotal_data = ref({
   current_month_balance: 0,
   last_month_balance: 0,
@@ -90,6 +104,7 @@ const subtotal_data_table_labels = computed(() => {
 // 取得匯款加油小計
 async function fetchSubtotalData() {
   if (transaction_mode.value == 1) {
+    isLoadingSubtotal_data.value = true
     try {
       const response = await apiClient.post('/main/monthlyBalance', {
         customerId: companyStore.company_info.customerId
@@ -102,6 +117,8 @@ async function fetchSubtotalData() {
       subtotal_data.value.current_month_fuel_total = Number(response.data.data[0].salesAmount)
     } catch (error) {
       console.error(error)
+    } finally {
+      isLoadingSubtotal_data.value = false
     }
   } else if (transaction_mode.value == 2) {
     subtotal_data.value[0] = {
@@ -128,6 +145,7 @@ const transfer_record = ref([])
 async function fetchTransferData() {
   updateCurrentMonth()
   fetchSubtotalData()
+  isLoadingTransfer_record.value = true
   try {
     const response = await apiClient.post('/main/remittanceRecord', {
       date: transfer_search_month.value,
@@ -143,6 +161,8 @@ async function fetchTransferData() {
     }))
   } catch (error) {
     console.error(error)
+  } finally {
+    isLoadingTransfer_record.value = false
   }
 }
 
@@ -207,7 +227,7 @@ function logout() {
       <span>結帳時間：{{ transaction_time }}</span>
     </p>
     <p>*以下匯款明細，會因匯款入帳作業有 2 - 3 工作天的差異</p>
-    <el-table class="mb-3" border :data="[subtotal_data]">
+    <el-table class="mb-3" border :data="[subtotal_data]" v-loading="isLoadingSubtotal_data">
       <el-table-column
         align="center"
         :min-width="
@@ -241,7 +261,16 @@ function logout() {
       @change="fetchTransferData"
     />
     <p class="my-3">安全值金額：{{ formatNumber(low_balance) }}</p>
-    <el-table :data="transfer_record" stripe height="350">
+    <el-table
+      :data="transfer_record"
+      stripe
+      height="350"
+      v-loading="isLoadingTransfer_record"
+      element-loading-text="資料載入中..."
+      :element-loading-spinner="svg"
+      element-loading-svg-view-box="-10, -10, 50, 50"
+      element-loading-background="rgba(122, 122, 122, 0.8)"
+    >
       <el-table-column align="center" prop="scheduled_date" label="交易日" />
       <el-table-column align="center" prop="checkoutTime" label="結帳日" />
       <el-table-column align="center" prop="remittance_amount" label="匯款金額">
