@@ -125,67 +125,48 @@ const low_balance = ref(200000)
 const transfer_record = ref([])
 
 // 搜尋匯款紀錄
-function fetchTransferData() {
-  console.log(transfer_search_month.value)
+async function fetchTransferData() {
   updateCurrentMonth()
   fetchSubtotalData()
-  transfer_record.value = [
-    {
-      scheduled_date: '2024-08-25',
-      checkoutTime: '2024-08-28',
-      remittance_amount: 500000,
-      note: '刷卡'
-    },
-    {
-      scheduled_date: '2024-08-21',
-      checkoutTime: '2024-08-24',
-      remittance_amount: 300000,
-      note: '刷卡'
-    },
-    {
-      scheduled_date: '2024-08-15',
-      checkoutTime: '2024-08-18',
-      remittance_amount: 390000,
-      note: '刷卡'
-    },
-    {
-      scheduled_date: '2024-08-08',
-      checkoutTime: '2024-08-11',
-      remittance_amount: 300000,
-      note: '刷卡'
-    },
-    {
-      scheduled_date: '2024-08-06',
-      checkoutTime: '2024-08-09',
-      remittance_amount: 600000,
-      note: '刷卡'
-    },
-    {
-      scheduled_date: '2024-08-07',
-      checkoutTime: '2024-08-10',
-      remittance_amount: 343000,
-      note: '刷卡'
-    },
-    {
-      scheduled_date: '2024-08-05',
-      checkoutTime: '2024-08-08',
-      remittance_amount: 800000,
-      note: '匯款'
-    },
-    {
-      scheduled_date: '2024-08-02',
-      checkoutTime: '2024-08-05',
-      remittance_amount: 490000,
-      note: '刷卡'
-    },
-    {
-      scheduled_date: '2024-08-01',
-      checkoutTime: '2024-08-04',
-      remittance_amount: 300000,
-      note: '刷卡'
-    }
-  ]
+  try {
+    const response = await apiClient.post('/main/remittanceRecord', {
+      date: transfer_search_month.value,
+      customerId: companyStore.company_info.customerId
+    })
+    transfer_record.value = response.data.data
+    transfer_record.value = response.data.data.map((item) => ({
+      scheduled_date: convertToGregorianDate(Number(item.account_date)), // 轉換日期格式
+      checkoutTime:
+        item.checkoutTime === '0' ? '' : convertToGregorianDate(Number(item.checkoutTime)), // 轉換日期格式
+      remittance_amount: formatNumber(Number(item.amount)), // 格式化數字
+      note: tradingModelMap[item.trading_model] || item.trading_model // 取得對應的 trading_model_des，若無則顯示原始 trading_model
+    }))
+  } catch (error) {
+    console.error(error)
+  }
 }
+
+// 將民國日期轉換為西元日期
+function convertToGregorianDate(rocDate) {
+  const year = Math.floor(rocDate / 10000)
+  const month = Math.floor((rocDate % 10000) / 100)
+  const day = rocDate % 100
+  const gregorianYear = year + 1911
+  return `${gregorianYear}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+}
+// 比對入帳模式(交易模式)
+const trading_model_list = [
+  { trading_model_code: 0, trading_model_des: '台企手動' },
+  { trading_model_code: 1, trading_model_des: '台企自動' },
+  { trading_model_code: 2, trading_model_des: '永豐手動刷卡帳' },
+  { trading_model_code: 4, trading_model_des: '支票' },
+  { trading_model_code: 4, trading_model_des: '永豐手動匯款帳' },
+  { trading_model_code: 5, trading_model_des: '現金' }
+]
+const tradingModelMap = trading_model_list.reduce((acc, item) => {
+  acc[item.trading_model_code] = item.trading_model_des
+  return acc
+}, {})
 
 function updateCurrentMonth() {
   if (transfer_search_month.value) {
