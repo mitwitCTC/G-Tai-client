@@ -125,7 +125,7 @@ async function fetchFuelData() {
       transaction_time: item.trade_time.split(' ')[1],
       plate: item.license_plate,
       station: item.station_name,
-      product_name: '未知',
+      product_name: item.fuel_type,
       quantity: Number(item.fuel_volume) || 0,
       unit_price: Number(item.reference_price) || 0,
       discount: Number(item.discount) || 0,
@@ -397,7 +397,7 @@ function logout() {
       />
       <el-table-column align="center" min-width="110" prop="plate" label="車牌號碼" />
       <el-table-column align="center" min-width="170" prop="station" label="加油站" />
-      <el-table-column align="center" min-width="110" prop="product_name" label="產品名稱" />
+      <el-table-column align="center" min-width="120" prop="product_name" label="產品名稱" />
       <el-table-column align="center" min-width="110" prop="quantity" label="數量" />
       <el-table-column align="center" min-width="70" prop="unit_price" label="單價" />
       <el-table-column align="center" min-width="70" prop="discount" label="折讓" />
