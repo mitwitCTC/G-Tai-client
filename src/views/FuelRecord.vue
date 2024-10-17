@@ -111,7 +111,6 @@ const fuel_record = ref([])
 
 // 搜尋加油紀錄
 async function fetchFuelData() {
-  updateCurrentMonth()
   fetchSubtotalData()
   fetchUpdateTime()
   isLoadingFuel_record.value = true
@@ -179,14 +178,6 @@ function checkTransaction_mode() {
 onMounted(() => {
   checkTransaction_mode()
 })
-
-function updateCurrentMonth() {
-  if (search_month.value) {
-    current_month.value = search_month.value.split('-')[1]
-  } else {
-    current_month.value = ''
-  }
-}
 
 watch(search_month, () => {
   fetchFuelData()
