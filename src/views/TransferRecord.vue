@@ -143,7 +143,6 @@ const transfer_record = ref([])
 
 // 搜尋匯款紀錄
 async function fetchTransferData() {
-  updateCurrentMonth()
   fetchSubtotalData()
   isLoadingTransfer_record.value = true
   try {
@@ -187,14 +186,6 @@ const tradingModelMap = trading_model_list.reduce((acc, item) => {
   acc[item.trading_model_code] = item.trading_model_des
   return acc
 }, {})
-
-function updateCurrentMonth() {
-  if (transfer_search_month.value) {
-    current_month.value = transfer_search_month.value.split('-')[1]
-  } else {
-    current_month.value = ''
-  }
-}
 
 watch(transfer_search_month, () => {
   fetchTransferData()
