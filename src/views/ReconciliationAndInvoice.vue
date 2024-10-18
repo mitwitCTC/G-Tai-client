@@ -11,7 +11,7 @@ const search_month = ref(`${currentYear}-${currentMonth}`)
 const current_month = ref('')
 const reconciliation_list = ref([])
 const invoice_list = ref([])
-function search() {
+function searchAccountGroup() {
   console.log(search_month.value)
   updateCurrentMonth()
   reconciliation_list.value = [
@@ -53,10 +53,10 @@ function updateCurrentMonth() {
 }
 
 watch(search_month, () => {
-  search()
+  searchAccountGroup()
 })
 onMounted(() => {
-  search()
+  searchAccountGroup()
 })
 
 function logout() {
@@ -81,7 +81,7 @@ function logout() {
       format="YYYY-MM"
       value-format="YYYY-MM"
       placeholder="請選擇查詢帳戶月份"
-      @change="search"
+      @change="searchAccountGroup"
     />
     <p class="mt-4">{{ current_month }}月份對帳單&發票檔案列表</p>
     <p>對帳單：</p>
