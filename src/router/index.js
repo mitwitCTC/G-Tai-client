@@ -35,9 +35,14 @@ const router = createRouter({
       component: () => import('@/views/ReconciliationAndInvoice.vue')
     },
     {
-      path: '/reconciliation-list',
-      name: 'Reconciliation-list',
-      component: () => import('@/views/ReconciliationList.vue')
+      path: '/accountStatement',
+      name: 'accountStatement',
+      component: () => import('@/views/AccountStatement.vue')
+    },
+    {
+      path: '/accountDetails',
+      name: 'accountDetails',
+      component: () => import('@/views/AccountDetails.vue')
     }
   ]
 })

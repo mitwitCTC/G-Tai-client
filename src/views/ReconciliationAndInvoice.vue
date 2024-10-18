@@ -9,37 +9,27 @@ const currentMonth = String(today.getMonth() + 1).padStart(2, '0')
 
 const search_month = ref(`${currentYear}-${currentMonth}`)
 const current_month = ref('')
-const reconciliation_list = ref([])
-const invoice_list = ref([])
+
+const reconciliationAndInvoice_list = ref([])
 function searchAccountGroup() {
   console.log(search_month.value)
   updateCurrentMonth()
-  reconciliation_list.value = [
+  reconciliationAndInvoice_list.value = [
     {
-      name: '對帳單202407-0028日星交通事業有限公司.pdf',
-      url: 'https://ct9967.com.tw/oil/tmp_PDF/%E5%B0%8D%E5%B8%B3%E5%96%AE202407-0028%E6%97%A5%E6%98%9F%E4%BA%A4%E9%80%9A%E4%BA%8B%E6%A5%AD%E6%9C%89%E9%99%90%E5%85%AC%E5%8F%B8.pdf'
+      acc_name: '永青遊覽有限公司', // 開立發票名稱
+      account_sortId: '854',
+      invoice: {
+        name: 'DK61622268',
+        downloadUrl: 'https://ct9967.com.tw/oil/tmp_PDF/11308_DK6162226811308.pdf'
+      }
     },
     {
-      name: '對帳單202407-0027日星交通事業有限公司.pdf',
-      url: 'https://ct9967.com.tw/oil/tmp_PDF/%E5%B0%8D%E5%B8%B3%E5%96%AE202407-0027%E6%97%A5%E6%98%9F%E4%BA%A4%E9%80%9A%E4%BA%8B%E6%A5%AD%E6%9C%89%E9%99%90%E5%85%AC%E5%8F%B8.pdf'
-    },
-    {
-      name: '對帳單202407-0026日星交通事業有限公司.pdf',
-      url: 'https://ct9967.com.tw/oil/tmp_PDF/%E5%B0%8D%E5%B8%B3%E5%96%AE202407-0026%E6%97%A5%E6%98%9F%E4%BA%A4%E9%80%9A%E4%BA%8B%E6%A5%AD%E6%9C%89%E9%99%90%E5%85%AC%E5%8F%B8.pdf'
-    }
-  ]
-  invoice_list.value = [
-    {
-      name: '11308_DK6162226811308.pdf',
-      url: 'https://ct9967.com.tw/oil/tmp_PDF/11308_DK6162226811308.pdf'
-    },
-    {
-      name: '11308_DK6162226911308.pdf',
-      url: 'https://ct9967.com.tw/oil/tmp_PDF/11308_DK6162226911308.pdf'
-    },
-    {
-      name: '11308_DK6162226711308.pdf',
-      url: 'https://ct9967.com.tw/oil/tmp_PDF/11308_DK6162226711308.pdf'
+      acc_name: '日星交通事業有限公司',
+      account_sortId: '853',
+      invoice: {
+        name: 'DK61622267',
+        downloadUrl: 'https://ct9967.com.tw/oil/tmp_PDF/11308_DK6162226711308.pdf'
+      }
     }
   ]
 }
@@ -58,6 +48,16 @@ watch(search_month, () => {
 onMounted(() => {
   searchAccountGroup()
 })
+
+// 跳轉到對應的頁面
+const goToAccountStatement = (account_sortId) => {
+  console.log(account_sortId)
+  router.push('/accountStatement')
+}
+const goToAccountDetails = (account_sortId) => {
+  console.log(account_sortId)
+  router.push('/accountDetails')
+}
 
 function logout() {
   sessionStorage.removeItem('token')
@@ -84,18 +84,38 @@ function logout() {
       @change="searchAccountGroup"
     />
     <p class="mt-4">{{ current_month }}月份對帳單&發票檔案列表</p>
-    <p>對帳單：</p>
-    <ul>
-      <li v-for="(item, index) in reconciliation_list" :key="index">
-        <router-link to="/reconciliation-list">{{ item.name }}</router-link>
-      </li>
-    </ul>
-    <p>發票：</p>
-    <ul>
-      <li v-for="(item, index) in invoice_list" :key="index">
-        <a :href="item.url">{{ item.name }}</a>
-      </li>
-    </ul>
+    <el-table :data="reconciliationAndInvoice_list">
+      <el-table-column
+        prop="acc_name"
+        label="帳單名稱"
+        align="center"
+        min-width="180"
+      ></el-table-column>
+
+      <el-table-column prop="account_sortId" label="帳單總表" align="center" min-width="120">
+        <template #default="{ row }">
+          <router-link to="accountStatement" @click="goToAccountStatement(row.account_sortId)">
+            {{ row.account_sortId }} <br />
+            總表
+          </router-link>
+        </template>
+      </el-table-column>
+
+      <el-table-column prop="account_sortId" label="帳單明細" align="center" min-width="120">
+        <template #default="{ row }">
+          <router-link to="accountDetails" @click="goToAccountDetails(row.account_sortId)">
+            {{ row.account_sortId }} <br />
+            明細
+          </router-link>
+        </template>
+      </el-table-column>
+
+      <el-table-column prop="invoice.name" label="發票" align="center" min-width="120">
+        <template #default="{ row }">
+          <a :href="row.invoice.downloadUrl">{{ row.invoice.name }}</a>
+        </template>
+      </el-table-column>
+    </el-table>
   </div>
 </template>
 
