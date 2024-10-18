@@ -107,6 +107,7 @@ async function fetchSubtotalData() {
     isLoadingSubtotal_data.value = true
     try {
       const response = await apiClient.post('/main/monthlyBalance', {
+        date: `${currentYear}-${current_month.value}`,
         customerId: companyStore.company_info.customerId
       })
       subtotal_data.value.current_month_balance = Number(response.data.data[0].thisMonthOverage)
