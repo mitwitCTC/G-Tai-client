@@ -108,7 +108,7 @@ onMounted(() => {
 // 跳轉到對應的頁面
 const goToAccountStatement = (account_sortId) => {
   const searchAccount_info = {
-    search_month: search_month.value,
+    date: search_month.value,
     account_sortId: account_sortId,
     customerId: companyStore.company_info.customerId
   }
@@ -117,7 +117,7 @@ const goToAccountStatement = (account_sortId) => {
 }
 const goToAccountDetails = (account_sortId) => {
   const searchAccount_info = {
-    search_month: search_month.value,
+    date: search_month.value,
     account_sortId: account_sortId,
     customerId: companyStore.company_info.customerId
   }
