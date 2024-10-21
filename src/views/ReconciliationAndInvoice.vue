@@ -1,6 +1,11 @@
 <script setup>
 import { ref, watch, onMounted } from 'vue'
 import router from '@/router'
+import { useCompanyStore } from '@/stores/companyStore'
+const companyStore = useCompanyStore()
+// 查詢對帳單總表及對帳單明細
+import { useSearchAccountStore } from '@/stores/accountStore'
+const searchAccountStore = useSearchAccountStore()
 
 // 預設當月
 const today = new Date()
@@ -12,7 +17,6 @@ const current_month = ref('')
 
 const reconciliationAndInvoice_list = ref([])
 function searchAccountGroup() {
-  console.log(search_month.value)
   updateCurrentMonth()
   reconciliationAndInvoice_list.value = [
     {
@@ -51,11 +55,21 @@ onMounted(() => {
 
 // 跳轉到對應的頁面
 const goToAccountStatement = (account_sortId) => {
-  console.log(account_sortId)
+  const searchAccount_info = {
+    search_month: search_month.value,
+    account_sortId: account_sortId,
+    customerId: companyStore.company_info.customerId
+  }
+  searchAccountStore.setSearchAccount(searchAccount_info)
   router.push('/accountStatement')
 }
 const goToAccountDetails = (account_sortId) => {
-  console.log(account_sortId)
+  const searchAccount_info = {
+    search_month: search_month.value,
+    account_sortId: account_sortId,
+    customerId: companyStore.company_info.customerId
+  }
+  searchAccountStore.setSearchAccount(searchAccount_info)
   router.push('/accountDetails')
 }
 
