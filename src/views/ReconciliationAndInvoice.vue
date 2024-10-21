@@ -17,9 +17,61 @@ const current_month = ref('')
 
 // API 根路由
 import apiClient from '@/api' // 載入 apiClient
+
+const subtotal_data = ref({
+  current_month_balance: 0,
+  last_month_balance: 0,
+  current_month_remittance_amount: 0,
+  current_month_fuel_total: 0
+})
+const isLoadingSubtotal_data = ref(false)
+// 取得匯款加油小計
+async function fetchSubtotalData() {
+  if (transaction_mode.value == 1) {
+    try {
+      const response = await apiClient.post('/main/monthlyBalance', {
+        date: search_month.value,
+        customerId: companyStore.company_info.customerId
+      })
+      subtotal_data.value.date = `${search_month.value.split('-')[0] - 1911}/${search_month.value.split('-')[1]}`
+      subtotal_data.value.current_month_balance = Number(response.data.data[0].thisMonthOverage)
+      subtotal_data.value.last_month_balance = Number(response.data.data[0].overage)
+      subtotal_data.value.current_month_remittance_amount = Number(
+        response.data.data[0].creditAmount
+      )
+      subtotal_data.value.current_month_fuel_total = Number(response.data.data[0].salesAmount)
+    } catch (error) {
+      console.error(error)
+    }
+  } else if (transaction_mode.value == 2) {
+    subtotal_data.value[0] = {
+      collateral_item: '現金',
+      collateral_value: 50000,
+      payment_deadline: '每月15日前'
+    }
+  }
+}
+onMounted(() => {
+  fetchSubtotalData()
+})
+
+// 確認交易方式為儲值或月結 (1為儲值；2為月結)
+const transaction_mode = ref('')
+function checkTransaction_mode() {
+  transaction_mode.value = sessionStorage.getItem('token')
+}
+onMounted(() => {
+  checkTransaction_mode()
+})
+
+// 格式化數字
+function formatNumber(value) {
+  return value.toLocaleString('en-US')
+}
+
 const reconciliationAndInvoice_list = ref([])
 async function searchAccountGroup() {
-  updateCurrentMonth()
+  fetchSubtotalData()
   await getInvoiceList()
   try {
     const response = await apiClient.post('/main/accountGroup', {
@@ -44,14 +96,6 @@ async function searchAccountGroup() {
 const invoice_list = ref([])
 async function getInvoiceList() {
   invoice_list.value = []
-}
-
-function updateCurrentMonth() {
-  if (search_month.value) {
-    current_month.value = search_month.value.split('-')[1]
-  } else {
-    current_month.value = ''
-  }
 }
 
 watch(search_month, () => {
@@ -96,6 +140,30 @@ function logout() {
       <button class="btn btn-yellow" @click="logout">登出</button>
     </div>
     <p class="fw-bold">對帳單&發票查詢</p>
+    <el-table border :data="[subtotal_data]" v-loading="isLoadingSubtotal_data">
+      <el-table-column align="center" min-width="80" prop="date" label="年月" />
+      <el-table-column align="center" min-width="100" label="前期餘額">
+        <template #default="{ row }">
+          <span>{{ formatNumber(row.last_month_balance) }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column align="center" min-width="230" label="*本期匯入金額(已扣除製卡費用)">
+        <template #default="{ row }">
+          <span>{{ formatNumber(row.current_month_remittance_amount) }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column align="center" min-width="120" label="本期使用金額">
+        <template #default="{ row }">
+          <span class="text-danger">{{ formatNumber(row.current_month_fuel_total) }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column align="center" min-width="120" label="本期餘額">
+        <template #default="{ row }">
+          <span>{{ formatNumber(row.current_month_balance) }}</span>
+        </template>
+      </el-table-column>
+    </el-table>
+    <p>*本期匯入金額已先預扣本期製卡費用</p>
     查詢帳戶月份：
     <el-date-picker
       v-model="search_month"
