@@ -15,22 +15,20 @@ const currentMonth = String(today.getMonth() + 1).padStart(2, '0')
 const search_month = ref(`${currentYear}-${currentMonth}`)
 const current_month = ref('')
 
+// API 根路由
+import apiClient from '@/api' // 載入 apiClient
 const reconciliationAndInvoice_list = ref([])
 async function searchAccountGroup() {
   updateCurrentMonth()
   await getInvoiceList()
-  reconciliationAndInvoice_list.value = [
-    {
-      acc_name: '永青遊覽有限公司', // 開立發票名稱
-      account_sortId: '854',
-      invoice: {}
-    },
-    {
-      acc_name: '日星交通事業有限公司',
-      account_sortId: '853',
-      invoice: {}
-    }
-  ]
+  try {
+    const response = await apiClient.post('/main/accountGroup', {
+      customerId: companyStore.company_info.customerId
+    })
+    reconciliationAndInvoice_list.value = response.data.data
+  } catch (error) {
+    console.error(error)
+  }
 
   // 遍歷 reconciliationAndInvoice_list 和 invoice_list，進行 invoice_name 的比對並合併 invoice 資料
   reconciliationAndInvoice_list.value.forEach((item) => {
