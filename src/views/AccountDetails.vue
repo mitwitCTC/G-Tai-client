@@ -2,8 +2,8 @@
 import { useSearchAccountStore } from '@/stores/accountStore'
 import { ref, onMounted } from 'vue'
 const searchAccountStore = useSearchAccountStore()
-const bill_year = ref(searchAccountStore.searchAccount.search_month.split('-')[0])
-const bill_month = ref(searchAccountStore.searchAccount.search_month.split('-')[1])
+const bill_year = ref(searchAccountStore.searchAccount.date.split('-')[0])
+const bill_month = ref(searchAccountStore.searchAccount.date.split('-')[1])
 
 // 格式化數字
 function formatNumber(value) {
@@ -13,60 +13,35 @@ const car_fuel_details = ref([])
 // 分組數據的變量
 const groupedData = ref([])
 
+// API 根路由
+import apiClient from '@/api' // 載入 apiClient
+const isLoading = ref(false)
 // 初始化時獲取數據
 async function fetchCarFuelDetails() {
-  car_fuel_details.value = [
-    {
-      plate: '366-ZZ',
-      transaction_date_time: '2024/07/05 11:22',
-      station: 'HHA69 北新加油站',
-      product_name: '0006 超級柴油',
-      unit_price: 26.4,
-      quantity: 204.25,
-      discount: 1.5,
-      list_price_subtotal: 5392,
-      subtotal: 5086,
-      mileage: 586657
-    },
-    {
-      plate: '366-ZZ',
-      transaction_date_time: '2024/07/07 04:44',
-      station: 'TTD27 金滿溢',
-      product_name: '0006 超級柴油',
-      unit_price: 26.4,
-      quantity: 184.39,
-      discount: 1.5,
-      list_price_subtotal: 4868,
-      subtotal: 4591,
-      mileage: 587203
-    },
-    {
-      plate: '366-ZZ',
-      transaction_date_time: '2024/07/07 221:24',
-      station: 'gga04 車亭三義',
-      product_name: '0006 超級柴油',
-      unit_price: 26.4,
-      quantity: 227.14,
-      discount: 1.5,
-      list_price_subtotal: 5996,
-      subtotal: 5655,
-      mileage: 587900
-    },
-    {
-      plate: '843-TT',
-      transaction_date_time: '2024/07/02 11:41',
-      station: 'YYE47 龍潭交流道',
-      product_name: '0006 超級柴油',
-      unit_price: 26.4,
-      quantity: 135.45,
-      discount: 1.5,
-      list_price_subtotal: 3576,
-      subtotal: 3373,
-      mileage: 641837
-    }
-  ]
-
-  // 分組數據並計算小計
+  isLoading.value = true
+  try {
+    const response = await apiClient.post('/main/accountDetails', {
+      date: searchAccountStore.searchAccount.date,
+      customerId: searchAccountStore.searchAccount.customerId,
+      account_sortId: searchAccountStore.searchAccount.account_sortId
+    })
+    car_fuel_details.value = response.data.data.map((item) => ({
+      plate: item.license_plate,
+      transaction_date_time: item.trade_time,
+      station: item.station_name,
+      product_name: item.fuel_type,
+      unit_price: formatNumber(Number(item.reference_price)),
+      quantity: formatNumber(Number(item.fuel_volume)),
+      discount: formatNumber(Number(item.discount)),
+      list_price_subtotal: Number(item.reference_amount),
+      subtotal: Number(item.salesAmount),
+      mileage: Number(item.mileage)
+    }))
+  } catch (error) {
+    console.error(error)
+  } finally {
+    isLoading.value = false
+  }
   groupDataByPlateAndProduct()
 }
 
@@ -87,10 +62,10 @@ function groupDataByPlateAndProduct() {
       const subtotal = group.data.reduce(
         (acc, item) => ({
           product_name: item.product_name, // 顯示油品名稱
-          quantity: acc.quantity + item.quantity,
-          list_price_subtotal: acc.list_price_subtotal + item.list_price_subtotal,
-          subtotal: acc.subtotal + item.subtotal,
-          mileage: item.mileage // 最後一個里程數
+          quantity: acc.quantity + Number(item.quantity),
+          list_price_subtotal: acc.list_price_subtotal + Number(item.list_price_subtotal),
+          subtotal: acc.subtotal + Number(item.subtotal),
+          mileage: acc.mileage + Number(item.mileage)
         }),
         {
           product_name: '',
@@ -100,7 +75,6 @@ function groupDataByPlateAndProduct() {
           mileage: 0
         }
       )
-
       // 插入小計行
       grouped.push({
         plate: '小計',
@@ -166,7 +140,13 @@ function logout() {
       <span>{{ bill_month }}月</span>
       <span>對帳單明細</span>
     </h4>
-    <el-table border :data="groupedData" height="500" :span-method="mergeCells">
+    <el-table
+      border
+      :data="groupedData"
+      v-loading="isLoading"
+      height="500"
+      :span-method="mergeCells"
+    >
       <el-table-column align="center" min-width="80" prop="plate" label="車牌" />
       <el-table-column
         align="center"
@@ -181,7 +161,7 @@ function logout() {
           <span>{{ formatNumber(row.unit_price) }}</span>
         </template>
       </el-table-column>
-      <el-table-column align="center" min-width="80" label="油量">
+      <el-table-column align="center" min-width="100" label="油量">
         <template #default="{ row }">
           <span>{{ formatNumber(row.quantity) }}</span>
         </template>
