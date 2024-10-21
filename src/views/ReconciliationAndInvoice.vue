@@ -16,26 +16,36 @@ const search_month = ref(`${currentYear}-${currentMonth}`)
 const current_month = ref('')
 
 const reconciliationAndInvoice_list = ref([])
-function searchAccountGroup() {
+async function searchAccountGroup() {
   updateCurrentMonth()
+  await getInvoiceList()
   reconciliationAndInvoice_list.value = [
     {
       acc_name: '永青遊覽有限公司', // 開立發票名稱
       account_sortId: '854',
-      invoice: {
-        name: 'DK61622268',
-        downloadUrl: 'https://ct9967.com.tw/oil/tmp_PDF/11308_DK6162226811308.pdf'
-      }
+      invoice: {}
     },
     {
       acc_name: '日星交通事業有限公司',
       account_sortId: '853',
-      invoice: {
-        name: 'DK61622267',
-        downloadUrl: 'https://ct9967.com.tw/oil/tmp_PDF/11308_DK6162226711308.pdf'
-      }
+      invoice: {}
     }
   ]
+
+  // 遍歷 reconciliationAndInvoice_list 和 invoice_list，進行 invoice_name 的比對並合併 invoice 資料
+  reconciliationAndInvoice_list.value.forEach((item) => {
+    const matchedInvoice = invoice_list.value.find(
+      (invoiceItem) => invoiceItem.invoice_name === item.invoice_name
+    )
+    if (matchedInvoice) {
+      item.invoice = matchedInvoice.invoice // 合併 invoice 資料
+    }
+  })
+}
+
+const invoice_list = ref([])
+async function getInvoiceList() {
+  invoice_list.value = []
 }
 
 function updateCurrentMonth() {
@@ -109,7 +119,6 @@ function logout() {
       <el-table-column prop="account_sortId" label="帳單總表" align="center" min-width="120">
         <template #default="{ row }">
           <router-link to="accountStatement" @click="goToAccountStatement(row.account_sortId)">
-            {{ row.account_sortId }} <br />
             總表
           </router-link>
         </template>
@@ -118,7 +127,6 @@ function logout() {
       <el-table-column prop="account_sortId" label="帳單明細" align="center" min-width="120">
         <template #default="{ row }">
           <router-link to="accountDetails" @click="goToAccountDetails(row.account_sortId)">
-            {{ row.account_sortId }} <br />
             明細
           </router-link>
         </template>
@@ -126,7 +134,7 @@ function logout() {
 
       <el-table-column prop="invoice.name" label="發票" align="center" min-width="120">
         <template #default="{ row }">
-          <a :href="row.invoice.downloadUrl">{{ row.invoice.name }}</a>
+          <a :href="row.invoice?.downloadUrl">{{ row.invoice?.name }}</a>
         </template>
       </el-table-column>
     </el-table>
