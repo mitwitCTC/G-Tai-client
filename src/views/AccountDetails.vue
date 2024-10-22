@@ -1,6 +1,8 @@
 <script setup>
 import { useSearchAccountStore } from '@/stores/accountStore'
 import { ref, onMounted } from 'vue'
+import FileSaver from 'file-saver'
+import * as XLSX from 'xlsx'
 const searchAccountStore = useSearchAccountStore()
 const bill_year = ref(searchAccountStore.searchAccount.date.split('-')[0])
 const bill_month = ref(searchAccountStore.searchAccount.date.split('-')[1])
@@ -30,9 +32,9 @@ async function fetchCarFuelDetails() {
       transaction_date_time: item.trade_time,
       station: item.station_name,
       product_name: item.fuel_type,
-      unit_price: formatNumber(Number(item.reference_price)),
-      quantity: formatNumber(Number(item.fuel_volume)),
-      discount: formatNumber(Number(item.discount)),
+      unit_price: Number(item.reference_price),
+      quantity: Number(item.fuel_volume),
+      discount: Number(item.discount),
       list_price_subtotal: Number(item.reference_amount),
       subtotal: Number(item.salesAmount),
       mileage: Number(item.mileage)
@@ -122,6 +124,101 @@ onMounted(() => {
   fetchCarFuelDetails()
 })
 
+// 匯出
+function exportExcel() {
+  let xlsxParam = { raw: true }
+  let wb = XLSX.utils.table_to_book(document.querySelector('#car_fuel_details'), xlsxParam)
+
+  // 獲取工作表
+  let ws = wb.Sheets[wb.SheetNames[0]]
+
+  // 設置儲存格格式
+  let range = XLSX.utils.decode_range(ws['!ref'])
+
+  // 中文欄位名稱與英文變數名稱的對應表
+  const fieldMap = {
+    單價: 'unit_price',
+    油量: 'quantity',
+    折讓: 'discount',
+    牌價金額: 'list_price_subtotal',
+    售價小計: 'subtotal',
+    里程數: 'mileage'
+  }
+
+  const numberFields = [
+    'unit_price',
+    'quantity',
+    'discount',
+    'list_price_subtotal',
+    'subtotal',
+    'mileage',
+    'fuel_consumption'
+  ]
+
+  for (let R = range.s.r; R <= range.e.r; ++R) {
+    for (let C = range.s.c; C <= range.e.c; ++C) {
+      let cell_address = { c: C, r: R }
+      let cell_ref = XLSX.utils.encode_cell(cell_address)
+      let cell = ws[cell_ref]
+
+      if (!cell) continue
+      if (!ws[cell_ref].s) ws[cell_ref].s = {}
+
+      // 設置對齊方式
+      ws[cell_ref].s.alignment = { horizontal: 'center', vertical: 'center' }
+
+      // 取得欄位名稱，進行對應映射
+      let columnHeader = ws[XLSX.utils.encode_cell({ c: C, r: 0 })].v.toString().trim()
+
+      // 若欄位名稱在 fieldMap 中，且符合 numberFields
+      if (R > 0 && numberFields.includes(fieldMap[columnHeader])) {
+        // 移除千位分隔符後再轉換為數字
+        if (cell && typeof cell.v === 'string') {
+          // 將數字中的千位逗號去除
+          cell.v = cell.v.replace(/,/g, '')
+        }
+
+        if (cell && !isNaN(parseFloat(cell.v))) {
+          cell.t = 'n' // 將儲存格格式設為數字
+          cell.v = parseFloat(cell.v) // 確保數值正確格式化
+        } else {
+          cell.v = 0 // 若不是數字則設為 0
+        }
+      }
+    }
+  }
+
+  // 設置欄位寬度
+  let colWidths = []
+  for (let C = range.s.c; C <= range.e.c; ++C) {
+    let maxWidth = 20
+    for (let R = range.s.r; R <= range.e.r; ++R) {
+      let cell_address = { c: C, r: R }
+      let cell_ref = XLSX.utils.encode_cell(cell_address)
+      let cell = ws[cell_ref]
+      if (!cell || !cell.v) continue
+      let cellValue = cell.v.toString()
+      maxWidth = Math.max(maxWidth, cellValue.length)
+    }
+    colWidths.push({ wch: maxWidth })
+  }
+  ws['!cols'] = colWidths
+
+  // 將工作簿寫出
+  const wbout = XLSX.write(wb, { bookType: 'xlsx', bookSST: true, type: 'array' })
+  try {
+    FileSaver.saveAs(
+      new Blob([wbout], { type: 'application/octet-stream' }),
+      `${bill_year.value}-${bill_month.value}對帳單明細.xlsx`
+    )
+  } catch (e) {
+    if (console) {
+      console.log(e, wbout)
+    }
+  }
+  return wbout
+}
+
 function logout() {
   sessionStorage.removeItem('token')
   this.$router.push('/login')
@@ -140,9 +237,13 @@ function logout() {
       <span>{{ bill_month }}月</span>
       <span>對帳單明細</span>
     </h4>
+    <div class="d-flex justify-content-end mb-3">
+      <button class="btn btn-warning" @click="exportExcel">匯出</button>
+    </div>
     <el-table
       border
       :data="groupedData"
+      id="car_fuel_details"
       v-loading="isLoading"
       height="500"
       :span-method="mergeCells"

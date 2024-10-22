@@ -3,6 +3,8 @@
 // const companyStore = useCompanyStore()
 import { useSearchAccountStore } from '@/stores/accountStore'
 import { ref, onMounted } from 'vue'
+import FileSaver from 'file-saver'
+import * as XLSX from 'xlsx'
 const searchAccountStore = useSearchAccountStore()
 const bill_year = ref(searchAccountStore.searchAccount.date.split('-')[0])
 const bill_month = ref(searchAccountStore.searchAccount.date.split('-')[1])
@@ -30,10 +32,10 @@ async function fetchCarSummaryData() {
       plate: item.license_plate,
       product_name: item.product_name, // 品項(油品)
       quantity: item.fuel_volume, // 公升數合計
-      list_price_subtotal: formatNumber(Number(item.reference_amount)), // 售價合計
-      subtotal: formatNumber(Number(item.amount)), // 售價合計
-      mileage: item.mileage ? formatNumber(Number(item.mileage)) : 0, // 總里程數
-      fuel_consumption: item.fuel_consumption ? formatNumber(Number(item.fuel_consumption)) : 0 // 油耗
+      list_price_subtotal: Number(item.reference_amount), // 牌價合計
+      subtotal: Number(item.amount), // 售價合計
+      mileage: item.mileage ? Number(item.mileage) : 0, // 總里程數
+      fuel_consumption: item.fuel_consumption ? Number(item.fuel_consumption) : 0 // 油耗
     }))
   } catch (error) {
     console.error(error)
@@ -44,6 +46,90 @@ async function fetchCarSummaryData() {
 onMounted(() => {
   fetchCarSummaryData()
 })
+
+// 匯出
+function exportExcel() {
+  let xlsxParam = { raw: true }
+  let wb = XLSX.utils.table_to_book(document.querySelector('#car_summary_data'), xlsxParam)
+
+  // 獲取工作表
+  let ws = wb.Sheets[wb.SheetNames[0]]
+
+  // 設置儲存格格式
+  let range = XLSX.utils.decode_range(ws['!ref'])
+
+  // 中文欄位名稱與英文變數名稱的對應表
+  const fieldMap = {
+    公升數合計: 'quantity',
+    牌價合計: 'list_price_subtotal',
+    售價合計: 'subtotal',
+    總里程數: 'mileage',
+    油耗: 'fuel_consumption'
+  }
+
+  const numberFields = [
+    'quantity',
+    'list_price_subtotal',
+    'subtotal',
+    'mileage',
+    'fuel_consumption'
+  ]
+
+  for (let R = range.s.r; R <= range.e.r; ++R) {
+    for (let C = range.s.c; C <= range.e.c; ++C) {
+      let cell_address = { c: C, r: R }
+      let cell_ref = XLSX.utils.encode_cell(cell_address)
+      let cell = ws[cell_ref]
+
+      if (!cell) continue
+      if (!ws[cell_ref].s) ws[cell_ref].s = {}
+
+      // 設置對齊方式
+      ws[cell_ref].s.alignment = { horizontal: 'center', vertical: 'center' }
+
+      // 取得欄位名稱，進行對應映射
+      let columnHeader = ws[XLSX.utils.encode_cell({ c: C, r: 0 })].v.toString().trim()
+
+      // 若欄位名稱在 fieldMap 中，且符合 numberFields
+      if (R > 0 && numberFields.includes(fieldMap[columnHeader])) {
+        cell.t = 'n' // 確保儲存格是數字格式
+        if (isNaN(cell.v)) {
+          cell.v = 0 // 若儲存格的值不是數字，則預設為 0
+        }
+      }
+    }
+  }
+
+  // 設置欄位寬度
+  let colWidths = []
+  for (let C = range.s.c; C <= range.e.c; ++C) {
+    let maxWidth = 14
+    for (let R = range.s.r; R <= range.e.r; ++R) {
+      let cell_address = { c: C, r: R }
+      let cell_ref = XLSX.utils.encode_cell(cell_address)
+      let cell = ws[cell_ref]
+      if (!cell || !cell.v) continue
+      let cellValue = cell.v.toString()
+      maxWidth = Math.max(maxWidth, cellValue.length)
+    }
+    colWidths.push({ wch: maxWidth })
+  }
+  ws['!cols'] = colWidths
+
+  // 將工作簿寫出
+  const wbout = XLSX.write(wb, { bookType: 'xlsx', bookSST: true, type: 'array' })
+  try {
+    FileSaver.saveAs(
+      new Blob([wbout], { type: 'application/octet-stream' }),
+      `${bill_year.value}-${bill_month.value}對帳單總表.xlsx`
+    )
+  } catch (e) {
+    if (console) {
+      console.log(e, wbout)
+    }
+  }
+  return wbout
+}
 
 function logout() {
   sessionStorage.removeItem('token')
@@ -63,6 +149,9 @@ function logout() {
       <span>{{ bill_month }}月</span>
       <span>對帳單總表</span>
     </h4>
+    <div class="d-flex justify-content-end mb-3">
+      <button class="btn btn-warning" @click="exportExcel">匯出</button>
+    </div>
     <el-table border :data="car_summary_data" height="300" v-loading="isLoading">
       <el-table-column align="center" min-width="80" prop="year_month" label="年月" />
       <el-table-column align="center" min-width="100" prop="plate" label="車牌號碼" />
@@ -92,6 +181,16 @@ function logout() {
           <span>{{ formatNumber(row.fuel_consumption) }}</span>
         </template>
       </el-table-column>
+    </el-table>
+    <el-table border :data="car_summary_data" id="car_summary_data" class="d-none">
+      <el-table-column align="center" min-width="80" prop="year_month" label="年月" />
+      <el-table-column align="center" min-width="100" prop="plate" label="車牌號碼" />
+      <el-table-column align="center" min-width="120" prop="product_name" label="油品" />
+      <el-table-column align="center" min-width="100" prop="quantity" label="公升數合計" />
+      <el-table-column align="center" min-width="100" prop="list_price_subtotal" label="牌價合計" />
+      <el-table-column align="center" min-width="100" prop="subtotal" label="售價合計" />
+      <el-table-column align="center" min-width="100" prop="mileage" label="總里程數" />
+      <el-table-column align="center" min-width="100" prop="fuel_consumption" label="油耗" />
     </el-table>
   </div>
 </template>
