@@ -103,16 +103,28 @@ function exportExcel() {
   // 設置欄位寬度
   let colWidths = []
   for (let C = range.s.c; C <= range.e.c; ++C) {
-    let maxWidth = 14
+    let maxWidth = 0 // 不設置初始寬度，讓其動態增大
     for (let R = range.s.r; R <= range.e.r; ++R) {
       let cell_address = { c: C, r: R }
       let cell_ref = XLSX.utils.encode_cell(cell_address)
       let cell = ws[cell_ref]
+
       if (!cell || !cell.v) continue
       let cellValue = cell.v.toString()
-      maxWidth = Math.max(maxWidth, cellValue.length)
+
+      // 針對中文及英文字元做不同的長度調整
+      let adjustedLength = cellValue.length
+      if (/[\u4e00-\u9fa5]/.test(cellValue)) {
+        // 如果包含中文字元，字元寬度需要更大，這裡假設中文字佔用兩個單位寬度
+        adjustedLength = cellValue.length * 2
+      }
+
+      // 找出此列中最長的內容長度，並動態設置最大寬度
+      maxWidth = Math.max(maxWidth, adjustedLength)
     }
-    colWidths.push({ wch: maxWidth })
+
+    // 避免過窄欄位，設置最小寬度為 10
+    colWidths.push({ wch: Math.max(maxWidth, 10) })
   }
   ws['!cols'] = colWidths
 
