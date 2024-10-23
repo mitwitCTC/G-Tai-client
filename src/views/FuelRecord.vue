@@ -420,7 +420,7 @@ function logout() {
       </el-table-column>
     </el-table>
     <el-table class="d-none" :data="filteredFuelData" id="fuel_data">
-      <el-table-column align="center" min-width="110" prop="team" label="使用單" />
+      <el-table-column align="center" min-width="110" prop="team" label="使用單位" />
       <el-table-column
         align="center"
         min-width="110"
