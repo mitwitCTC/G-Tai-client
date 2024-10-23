@@ -1,26 +1,38 @@
 <script setup>
 import { onMounted, ref } from 'vue'
 import router from '@/router'
-const company_info = ref([
-  {
-    customerId: 'G2200756',
-    customerName: '捷乘交通有限公司',
-    vat_number: '75939529',
-    company_tel: '02-12345678',
-    fax_number: '02-12341234',
-    delivery_address: '900屏東縣屏東市迪化街29號',
-    Insufficient_Balance_SMS: false
+import { useCompanyStore } from '@/stores/companyStore'
+const companyStore = useCompanyStore()
+
+// API 根路由
+import apiServer from '@/apiServer' // 載入 apiServer
+const company_info = ref({})
+async function getCompany_info() {
+  try {
+    const response = await apiServer.post('/main/searchCustomer', {
+      cus_code: companyStore.company_info.customerId
+    })
+    company_info.value.customerId = response.data.data[0].cus_code
+    company_info.value.customerName = response.data.data[0].company_title
+    company_info.value.vat_number = response.data.data[0].vat_number
+    company_info.value.company_tel = response.data.data[0].phone
+    company_info.value.fax_number = response.data.data[0].fax
+    company_info.value.delivery_address = response.data.data[0].mail_address
+  } catch (error) {
+    console.error(error)
   }
-])
+}
+onMounted(() => {
+  getCompany_info()
+})
 function formatLabel(key) {
   const labels = {
-    customerId: '客戶編號',
+    customerId: '客戶代號',
     customerName: '客戶名稱',
     vat_number: '統一編號',
     company_tel: '公司電話',
     fax_number: '傳真電話',
-    delivery_address: '郵寄地址',
-    Insufficient_Balance_SMS: '餘額不足通知'
+    delivery_address: '郵寄地址'
   }
   return labels[key] || key
 }
@@ -117,14 +129,11 @@ function logout() {
     </div>
     <!-- 客戶基本資料表 -->
     <table class="table">
-      <tbody v-for="(item, index) in company_info" :key="index">
+      <tbody v-for="(item, index) in [company_info]" :key="index">
         <tr v-for="(value, key) in item" :key="key">
           <td>{{ formatLabel(key) }}</td>
           <td>
-            <span v-if="key === 'Insufficient_Balance_SMS'">
-              {{ value ? '是' : '否' }}
-            </span>
-            <span v-else>{{ value }}</span>
+            <span>{{ value }}</span>
           </td>
         </tr>
       </tbody>
