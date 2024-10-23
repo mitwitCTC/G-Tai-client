@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import router from '@/router'
 const company_info = ref([
   {
@@ -8,23 +8,8 @@ const company_info = ref([
     vat_number: '75939529',
     company_tel: '02-12345678',
     fax_number: '02-12341234',
-    contact_name: '陳經理',
-    contact_tel: '0909-123456',
-    auditor_name: '林經理',
-    auditor_phone: '02-11112222',
-    email: 'test@gmail.com',
     delivery_address: '900屏東縣屏東市迪化街29號',
-    Insufficient_Balance_SMS: false,
-    subsidiary: [
-      {
-        vat_number: '11111111',
-        name: '泰樂-採訪車'
-      },
-      {
-        vat_number: '22222222',
-        name: '泰樂-採訪車'
-      }
-    ]
+    Insufficient_Balance_SMS: false
   }
 ])
 function formatLabel(key) {
@@ -34,17 +19,57 @@ function formatLabel(key) {
     vat_number: '統一編號',
     company_tel: '公司電話',
     fax_number: '傳真電話',
-    contact_name: '承辦窗口',
-    contact_tel: '承辦電話',
-    auditor_name: '帳務窗口',
-    auditor_phone: '帳務電話',
-    email: 'E-MAIL',
     delivery_address: '郵寄地址',
-    Insufficient_Balance_SMS: '餘額不足通知',
-    subsidiary: '分公司使用單位/統編'
+    Insufficient_Balance_SMS: '餘額不足通知'
   }
   return labels[key] || key
 }
+
+// 聯絡人資料
+const contactData = ref([])
+async function getContactData() {
+  contactData.value = [
+    {
+      job_title: '承辦',
+      name: '鄭吉峰',
+      mobile: '0977-090-030',
+      mail: 'subal.bus@gmail.com',
+      notes: ''
+    },
+    {
+      job_title: '會計',
+      name: '賴小姐',
+      mobile: '0980-063-217',
+      mail: 'subal.bus@gmail.com',
+      notes: ''
+    }
+  ]
+}
+onMounted(() => {
+  getContactData()
+})
+
+// 分公司資料
+const subsidiaryData = ref([])
+async function getSubsidiaryData() {
+  subsidiaryData.value = [
+    {
+      name: '八達通遊覽車客運有限公司',
+      vat_number: '89290241'
+    },
+    {
+      name: '日星交通事業有限公司',
+      vat_number: '12130252'
+    },
+    {
+      name: '永青遊覽有限公司',
+      vat_number: '4995964'
+    }
+  ]
+}
+onMounted(() => {
+  getSubsidiaryData()
+})
 
 const all_vehicle_status = ref([
   {
@@ -90,30 +115,36 @@ function logout() {
       </router-link>
       <button class="btn btn-yellow" @click="logout">登出</button>
     </div>
+    <!-- 客戶基本資料表 -->
     <table class="table">
       <tbody v-for="(item, index) in company_info" :key="index">
         <tr v-for="(value, key) in item" :key="key">
           <td>{{ formatLabel(key) }}</td>
           <td>
-            <span v-if="Array.isArray(value)">
-              <ul>
-                <li v-for="(sub, subIndex) in value" :key="subIndex">
-                  {{ sub.name }}
-                  <br />
-                  統編：{{ sub.vat_number }}
-                </li>
-              </ul>
+            <span v-if="key === 'Insufficient_Balance_SMS'">
+              {{ value ? '是' : '否' }}
             </span>
-            <span v-else>
-              <span v-if="key === 'Insufficient_Balance_SMS'">
-                {{ value ? '是' : '否' }}
-              </span>
-              <span v-else>{{ value }}</span>
-            </span>
+            <span v-else>{{ value }}</span>
           </td>
         </tr>
       </tbody>
     </table>
+    <hr />
+    <!-- 客戶聯絡人表 -->
+    <el-table :data="contactData">
+      <el-table-column align="center" prop="job_title" label="職稱" />
+      <el-table-column align="center" prop="name" label="聯絡人姓名" />
+      <el-table-column align="center" prop="mobile" label="聯絡人電話" />
+      <el-table-column align="center" prop="mail" label="聯絡人信箱" min-width="130" />
+      <el-table-column align="center" prop="notes" label="備註" />
+    </el-table>
+    <hr />
+    <!-- 分公司資料表 -->
+    <el-table :data="subsidiaryData">
+      <el-table-column align="center" prop="name" label="分公司名稱" />
+      <el-table-column align="center" prop="vat_number" label="統一編號" />
+    </el-table>
+    <hr />
     <h2>車籍異動狀態</h2>
     <div id="vehicle-status" class="mt-5">
       <ul class="d-flex gap-5 justify-content-center align-items-center flex-wrap">
