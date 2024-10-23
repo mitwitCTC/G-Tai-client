@@ -6,6 +6,7 @@ const companyStore = useCompanyStore()
 
 // API 根路由
 import apiServer from '@/apiServer' // 載入 apiServer
+import apiClient from '@/api' // 載入 apiClient
 const company_info = ref({})
 async function getCompany_info() {
   try {
@@ -60,25 +61,22 @@ onMounted(() => {
 })
 
 // 分公司資料
-const subsidiaryData = ref([])
-async function getSubsidiaryData() {
-  subsidiaryData.value = [
-    {
-      name: '八達通遊覽車客運有限公司',
-      vat_number: '89290241'
-    },
-    {
-      name: '日星交通事業有限公司',
-      vat_number: '12130252'
-    },
-    {
-      name: '永青遊覽有限公司',
-      vat_number: '4995964'
-    }
-  ]
+const subsidiary_data = ref([])
+async function getSubsidiary_data() {
+  try {
+    const response = await apiClient.post('/main/accountGroup', {
+      customerId: companyStore.company_info.customerId
+    })
+    subsidiary_data.value = response.data.data.map((item) => ({
+      name: item.acc_name,
+      vat_number: item.use_number
+    }))
+  } catch (error) {
+    console.error(error)
+  }
 }
 onMounted(() => {
-  getSubsidiaryData()
+  getSubsidiary_data()
 })
 
 const all_vehicle_status = ref([
@@ -147,8 +145,8 @@ function logout() {
     </el-table>
     <hr />
     <!-- 分公司資料表 -->
-    <el-table :data="subsidiaryData">
-      <el-table-column align="center" prop="name" label="分公司名稱" />
+    <el-table :data="subsidiary_data">
+      <el-table-column align="center" prop="name" label="分公司名稱" min-width="140" />
       <el-table-column align="center" prop="vat_number" label="統一編號" />
     </el-table>
     <hr />
