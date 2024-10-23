@@ -38,27 +38,25 @@ function formatLabel(key) {
 }
 
 // 聯絡人資料
-const contactData = ref([])
-async function getContactData() {
-  contactData.value = [
-    {
-      job_title: '承辦',
-      name: '鄭吉峰',
-      mobile: '0977-090-030',
-      mail: 'subal.bus@gmail.com',
-      notes: ''
-    },
-    {
-      job_title: '會計',
-      name: '賴小姐',
-      mobile: '0980-063-217',
-      mail: 'subal.bus@gmail.com',
-      notes: ''
-    }
-  ]
+const contact_data = ref([])
+async function getContact_data() {
+  try {
+    const response = await apiServer.post('/main/searchContact', {
+      customerId: companyStore.company_info.customerId
+    })
+    contact_data.value = response.data.data.map((item) => ({
+      job_title: item.job_title,
+      name: item.name,
+      mobile: item.mobile,
+      mail: item.mail,
+      notes: item.notes
+    }))
+  } catch (error) {
+    console.error(error)
+  }
 }
 onMounted(() => {
-  getContactData()
+  getContact_data()
 })
 
 // 分公司資料
@@ -140,11 +138,11 @@ function logout() {
     </table>
     <hr />
     <!-- 客戶聯絡人表 -->
-    <el-table :data="contactData">
+    <el-table :data="contact_data">
       <el-table-column align="center" prop="job_title" label="職稱" />
-      <el-table-column align="center" prop="name" label="聯絡人姓名" />
-      <el-table-column align="center" prop="mobile" label="聯絡人電話" />
-      <el-table-column align="center" prop="mail" label="聯絡人信箱" min-width="130" />
+      <el-table-column align="center" prop="name" label="聯絡人姓名" min-width="100" />
+      <el-table-column align="center" prop="mobile" label="聯絡人電話" min-width="120" />
+      <el-table-column align="center" prop="mail" label="聯絡人信箱" min-width="200" />
       <el-table-column align="center" prop="notes" label="備註" />
     </el-table>
     <hr />
