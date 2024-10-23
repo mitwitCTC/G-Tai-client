@@ -193,27 +193,6 @@ function formatNumber(value) {
   return value.toLocaleString('en-US')
 }
 
-// 分頁相關
-const pageSize = ref(5) // 每頁顯示的筆數
-const currentPage = ref(1) // 當前頁碼
-const totalRecords = computed(() => filteredFuelData.value.length) // 總筆數
-const paginatedData = computed(() => {
-  const start = (currentPage.value - 1) * pageSize.value
-  const end = start + pageSize.value
-  return filteredFuelData.value.slice(start, end)
-})
-
-// 改變每頁顯示的筆數
-function handleSizeChange(size) {
-  pageSize.value = size
-  currentPage.value = 1 // 重置到第一頁
-}
-
-// 改變當前頁碼
-function handleCurrentChange(page) {
-  currentPage.value = page
-}
-
 const plate = ref('')
 // 以車牌搜尋加油交易明細
 const filteredFuelData = computed(() => {
@@ -372,7 +351,7 @@ function logout() {
     </div>
 
     <el-table
-      :data="paginatedData"
+      :data="filteredFuelData"
       stripe
       height="350"
       v-loading="isLoadingFuel_record"
@@ -456,23 +435,6 @@ function logout() {
       <el-table-column align="center" min-width="110" prop="mileage" label="里程數" />
       <el-table-column align="center" min-width="110" prop="fuel_consumption" label="油耗" />
     </el-table>
-
-    <p>
-      顯示第 {{ (currentPage - 1) * pageSize + 1 }} 項 到 第
-      {{ Math.min(currentPage * pageSize, totalRecords) }} 項 (共 {{ totalRecords }} 項)
-    </p>
-    <el-pagination
-      background
-      layout="sizes, prev, pager, next"
-      :page-sizes="[3, 5, 10]"
-      :page-size="pageSize"
-      :show-sizes="false"
-      :total="totalRecords"
-      :current-page="currentPage"
-      @size-change="handleSizeChange"
-      @current-change="handleCurrentChange"
-    >
-    </el-pagination>
   </div>
 </template>
 
