@@ -110,7 +110,7 @@ onMounted(() => {
 
 // 登出
 function logout() {
-  sessionStorage.removeItem('token')
+  sessionStorage.clear()
   router.push('/login')
 }
 </script>

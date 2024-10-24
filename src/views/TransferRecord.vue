@@ -212,7 +212,7 @@ function formatNumber(value) {
 }
 
 function logout() {
-  sessionStorage.removeItem('token')
+  sessionStorage.clear()
   router.push('/login')
 }
 </script>

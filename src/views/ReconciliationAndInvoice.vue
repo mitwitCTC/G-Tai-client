@@ -172,7 +172,7 @@ const goToAccountDetails = (account_sortId) => {
 }
 
 function logout() {
-  sessionStorage.removeItem('token')
+  sessionStorage.clear()
   router.push('/login')
 }
 </script>

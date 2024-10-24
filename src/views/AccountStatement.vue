@@ -1,8 +1,7 @@
 <script setup>
-// import { useCompanyStore } from '@/stores/companyStore'
-// const companyStore = useCompanyStore()
 import { useSearchAccountStore } from '@/stores/accountStore'
 import { ref, onMounted } from 'vue'
+import router from '@/router'
 import FileSaver from 'file-saver'
 import * as XLSX from 'xlsx'
 const searchAccountStore = useSearchAccountStore()
@@ -144,8 +143,8 @@ function exportExcel() {
 }
 
 function logout() {
-  sessionStorage.removeItem('token')
-  this.$router.push('/login')
+  sessionStorage.clear()
+  router.push('/login')
 }
 </script>
 <template>
