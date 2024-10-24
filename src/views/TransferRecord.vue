@@ -227,7 +227,7 @@ function logout() {
     </div>
     <p class="d-flex justify-content-between">
       <span class="fw-bold">匯款紀錄查詢</span>
-      <span>結帳時間：{{ transaction_time }}</span>
+      <span v-if="transaction_time != '無最後更新時間'">結帳時間：{{ transaction_time }}</span>
     </p>
     <p>*以下匯款明細，會因匯款入帳作業有 2 - 3 工作天的差異</p>
     <el-table class="mb-3" border :data="[subtotal_data]" v-loading="isLoadingSubtotal_data">
