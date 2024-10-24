@@ -25,20 +25,16 @@ const navItems = ref([
   }
 ])
 const companyStore = useCompanyStore()
-// const company_info = ref({})
+const company_info = ref({})
 function fetchCompanyInfo() {
-  const company_info = {
-    customerId: 'G2100015',
-    customerName: '日星交通事業有限公司'
-  }
-  companyStore.setCompanyInfo(company_info)
+  company_info.value = companyStore.company_info
 }
 onMounted(() => {
   fetchCompanyInfo()
 })
 
 function logout() {
-  sessionStorage.removeItem('token')
+  sessionStorage.clear()
   router.push('/login')
 }
 </script>

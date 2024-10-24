@@ -1,31 +1,75 @@
 <script setup>
 import router from '@/router'
 import { ref } from 'vue'
+import { useCompanyStore } from '@/stores/companyStore'
+const companyStore = useCompanyStore()
 
 const loginForm = ref({
   account: '',
   password: ''
 })
 const login_result = ref('')
+const customerId = ref('')
 
-function submitForm() {
-  if (loginForm.value.account == '' || loginForm.value.password == '') {
-    login_result.value = '帳號密碼不得為空！'
-  } else if (loginForm.value.account == 'admin1' && loginForm.value.password == '1234') {
-    login_result.value = '登入成功'
-    sessionStorage.setItem('token', '1')
-    router.push('/')
-  } else if (loginForm.value.account == 'admin2' && loginForm.value.password == '1234') {
-    login_result.value = '登入成功'
-    sessionStorage.setItem('token', '2')
-    router.push('/')
-  } else {
-    login_result.value = '帳號或密碼錯誤'
+// API 根路由
+import apiClient from '@/api' // 載入 apiClient
+import apiServer from '@/apiServer' // 載入 apiServer
+
+async function submitForm() {
+  try {
+    const { account, password } = loginForm.value
+    const response = await apiClient.post('/main/logIn', {
+      vat_number: account,
+      front_pwd: password
+    })
+
+    const { returnCode, message, data } = response.data
+
+    if (returnCode === 0) {
+      const { contract_status, cus_code, transaction_mode } = data[0]
+      if (contract_status !== 'Y') {
+        login_result.value = '登入成功'
+        customerId.value = cus_code
+        setCompanyInfo()
+        sessionStorage.setItem('token', transaction_mode)
+        router.push('/')
+      } else {
+        setLoginResult('登入失敗')
+      }
+    } else {
+      setLoginResult(message)
+    }
+  } catch (error) {
+    console.error(error)
   }
+  resetLoginResult()
+}
 
+function setLoginResult(message) {
+  login_result.value = message
   setTimeout(() => {
     login_result.value = ''
   }, 2000)
+}
+
+function resetLoginResult() {
+  setTimeout(() => {
+    login_result.value = ''
+  }, 2000)
+}
+
+const company_info = ref({})
+async function setCompanyInfo() {
+  try {
+    const response = await apiServer.post('/main/searchCustomer', {
+      cus_code: customerId.value
+    })
+    company_info.value.customerId = response.data.data[0].cus_code
+    company_info.value.customerName = response.data.data[0].company_title
+    companyStore.setCompanyInfo(company_info.value)
+  } catch (error) {
+    console.error(error)
+  }
 }
 </script>
 
