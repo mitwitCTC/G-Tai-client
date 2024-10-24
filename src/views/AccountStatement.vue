@@ -11,7 +11,7 @@ const bill_month = ref(searchAccountStore.searchAccount.date.split('-')[1])
 
 // 格式化數字
 function formatNumber(value) {
-  return value.toLocaleString('en-US')
+  return typeof value === 'number' ? value.toLocaleString('en-US') : value
 }
 
 // API 根路由
@@ -31,7 +31,7 @@ async function fetchCarSummaryData() {
       year_month: bill_year.value - 1911 + '/' + bill_month.value,
       plate: item.license_plate,
       product_name: item.product_name, // 品項(油品)
-      quantity: item.fuel_volume, // 公升數合計
+      quantity: Number(item.fuel_volume), // 公升數合計
       list_price_subtotal: Number(item.reference_amount), // 牌價合計
       subtotal: Number(item.amount), // 售價合計
       mileage: item.mileage ? Number(item.mileage) : 0, // 總里程數

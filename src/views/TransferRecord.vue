@@ -95,6 +95,10 @@ const subtotal_data_table_labels = computed(() => {
       {
         label: '擔保品價值',
         prop: 'collateral_value'
+      },
+      {
+        label: '款項繳費期限',
+        prop: 'payment_deadline'
       }
     ]
   }
@@ -122,9 +126,10 @@ async function fetchSubtotalData() {
       isLoadingSubtotal_data.value = false
     }
   } else if (transaction_mode.value == 2) {
-    subtotal_data.value[0] = {
+    subtotal_data.value = {
       collateral_item: '現金',
-      collateral_value: 50000
+      collateral_value: 50000,
+      payment_deadline: '每月15日前'
     }
   }
 }
@@ -196,7 +201,7 @@ onMounted(() => {
 
 // 格式化數字
 function formatNumber(value) {
-  return value.toLocaleString('en-US')
+  return typeof value === 'number' ? value.toLocaleString('en-US') : value
 }
 
 function logout() {

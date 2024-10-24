@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch, onMounted } from 'vue'
+import { ref, watch, onMounted, computed } from 'vue'
 import router from '@/router'
 import { useCompanyStore } from '@/stores/companyStore'
 const companyStore = useCompanyStore()
@@ -17,6 +17,15 @@ const current_month = ref('')
 
 // API 根路由
 import apiClient from '@/api' // 載入 apiClient
+
+// 確認交易方式為儲值或月結 (1為儲值；2為月結)
+const transaction_mode = ref('')
+function checkTransaction_mode() {
+  transaction_mode.value = sessionStorage.getItem('token')
+}
+onMounted(() => {
+  checkTransaction_mode()
+})
 
 const subtotal_data = ref({
   current_month_balance: 0,
@@ -44,7 +53,7 @@ async function fetchSubtotalData() {
       console.error(error)
     }
   } else if (transaction_mode.value == 2) {
-    subtotal_data.value[0] = {
+    subtotal_data.value = {
       collateral_item: '現金',
       collateral_value: 50000,
       payment_deadline: '每月15日前'
@@ -55,18 +64,55 @@ onMounted(() => {
   fetchSubtotalData()
 })
 
-// 確認交易方式為儲值或月結 (1為儲值；2為月結)
-const transaction_mode = ref('')
-function checkTransaction_mode() {
-  transaction_mode.value = sessionStorage.getItem('token')
-}
-onMounted(() => {
-  checkTransaction_mode()
+// 小計表格 label
+const subtotal_data_table_labels = computed(() => {
+  // 儲值方式的資訊
+  if (transaction_mode.value == 1) {
+    return [
+      {
+        label: '年月',
+        prop: 'date'
+      },
+      {
+        label: '前期餘額',
+        prop: 'last_month_balance'
+      },
+      {
+        label: '*本期匯入金額(已扣除製卡費用)',
+        prop: 'current_month_remittance_amount'
+      },
+      {
+        label: '本期使用金額',
+        prop: 'current_month_remittance_amount'
+      },
+      {
+        label: '本期餘額',
+        prop: 'current_month_balance'
+      }
+    ]
+  } // 月結方式的資訊
+  else if (transaction_mode.value == 2) {
+    return [
+      {
+        label: '擔保品',
+        prop: 'collateral_item'
+      },
+      {
+        label: '擔保品價值',
+        prop: 'collateral_value'
+      },
+      {
+        label: '款項繳費期限',
+        prop: 'payment_deadline'
+      }
+    ]
+  }
+  return ''
 })
 
 // 格式化數字
 function formatNumber(value) {
-  return value.toLocaleString('en-US')
+  return typeof value === 'number' ? value.toLocaleString('en-US') : value
 }
 
 const reconciliationAndInvoice_list = ref([])
@@ -140,26 +186,17 @@ function logout() {
       <button class="btn btn-yellow" @click="logout">登出</button>
     </div>
     <p class="fw-bold">對帳單&發票查詢</p>
-    <el-table border :data="[subtotal_data]" v-loading="isLoadingSubtotal_data">
-      <el-table-column align="center" min-width="80" prop="date" label="年月" />
-      <el-table-column align="center" min-width="100" label="前期餘額">
-        <template #default="{ row }">
-          <span>{{ formatNumber(row.last_month_balance) }}</span>
-        </template>
-      </el-table-column>
-      <el-table-column align="center" min-width="230" label="*本期匯入金額(已扣除製卡費用)">
-        <template #default="{ row }">
-          <span>{{ formatNumber(row.current_month_remittance_amount) }}</span>
-        </template>
-      </el-table-column>
-      <el-table-column align="center" min-width="120" label="本期使用金額">
-        <template #default="{ row }">
-          <span class="text-danger">{{ formatNumber(row.current_month_fuel_total) }}</span>
-        </template>
-      </el-table-column>
-      <el-table-column align="center" min-width="120" label="本期餘額">
-        <template #default="{ row }">
-          <span>{{ formatNumber(row.current_month_balance) }}</span>
+    <el-table class="mb-3" border :data="[subtotal_data]" v-loading="isLoadingSubtotal_data">
+      <el-table-column
+        align="center"
+        v-for="(item, index) in subtotal_data_table_labels"
+        :key="index"
+        :label="item.label"
+      >
+        <template #default="scope">
+          <span>
+            {{ formatNumber(scope.row[item.prop]) }}
+          </span>
         </template>
       </el-table-column>
     </el-table>

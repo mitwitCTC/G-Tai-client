@@ -9,7 +9,7 @@ const bill_month = ref(searchAccountStore.searchAccount.date.split('-')[1])
 
 // 格式化數字
 function formatNumber(value) {
-  return value.toLocaleString('en-US')
+  return typeof value === 'number' ? value.toLocaleString('en-US') : value
 }
 const car_fuel_details = ref([])
 // 分組數據的變量
