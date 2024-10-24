@@ -35,9 +35,9 @@ function submitForm() {
     :title="login_result"
     :type="login_result == '登入成功' ? 'success' : 'error'"
     show-icon
-    class="mb-3"
+    class="position-absolute"
   />
-  <div class="container d-flex justify-content-center">
+  <div class="container position-relative d-flex justify-content-center">
     <div class="login-form mt-5 w-50">
       <h1 class="text-center my-3">鉅泰創新</h1>
       <div class="d-flex justify-content-center">
