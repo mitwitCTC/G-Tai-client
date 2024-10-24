@@ -179,18 +179,25 @@ function convertToGregorianDate(rocDate) {
   return `${gregorianYear}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
 }
 // 比對入帳模式(交易模式)
-const trading_model_list = [
-  { trading_model_code: 0, trading_model_des: '台企手動' },
-  { trading_model_code: 1, trading_model_des: '台企自動' },
-  { trading_model_code: 2, trading_model_des: '永豐手動刷卡帳' },
-  { trading_model_code: 4, trading_model_des: '支票' },
-  { trading_model_code: 4, trading_model_des: '永豐手動匯款帳' },
-  { trading_model_code: 5, trading_model_des: '現金' }
-]
-const tradingModelMap = trading_model_list.reduce((acc, item) => {
-  acc[item.trading_model_code] = item.trading_model_des
-  return acc
-}, {})
+const trading_model_list = ref([])
+async function getTrading_model_list() {
+  try {
+    const response = await apiClient.get('/main/tradingModel')
+    trading_model_list.value = response.data.data
+  } catch (error) {
+    console.error(error)
+  }
+}
+onMounted(() => {
+  getTrading_model_list()
+})
+
+const tradingModelMap = computed(() => {
+  return trading_model_list.value.reduce((acc, item) => {
+    acc[item.trading_model_code] = item.trading_model_des
+    return acc
+  }, {})
+})
 
 watch(transfer_search_month, () => {
   fetchTransferData()
@@ -274,7 +281,11 @@ function logout() {
           <span>{{ formatNumber(row.remittance_amount) }}</span>
         </template>
       </el-table-column>
-      <el-table-column align="center" prop="note" label="交易方式" />
+      <el-table-column align="center" prop="note" label="交易方式">
+        <template #default="{ row }">
+          <span>{{ tradingModelMap[row.note] }}</span>
+        </template>
+      </el-table-column>
     </el-table>
   </div>
 </template>
