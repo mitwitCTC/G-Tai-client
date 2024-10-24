@@ -79,34 +79,34 @@ onMounted(() => {
   getSubsidiary_data()
 })
 
-const all_vehicle_status = ref([
-  {
-    status_des: '申請中油車隊卡',
-    icon_path: './vehicle_status/1.png'
-  },
-  {
-    status_des: '送出申請中油車隊卡',
-    icon_path: './vehicle_status/2.png'
-  },
-  {
-    status_des: '中油車隊卡製卡中',
-    icon_path: './vehicle_status/3.png'
-  },
-  {
-    status_des: '中油清點中油車隊卡',
-    icon_path: './vehicle_status/4.png'
-  },
-  {
-    status_des: '鉅泰寄出中油車隊卡',
-    icon_path: './vehicle_status/5.png'
-  },
-  {
-    status_des: '掛號單號查詢',
-    icon_path: './vehicle_status/6.png'
-  }
-])
+// const all_vehicle_status = ref([
+//   {
+//     status_des: '申請中油車隊卡',
+//     icon_path: './vehicle_status/1.png'
+//   },
+//   {
+//     status_des: '送出申請中油車隊卡',
+//     icon_path: './vehicle_status/2.png'
+//   },
+//   {
+//     status_des: '中油車隊卡製卡中',
+//     icon_path: './vehicle_status/3.png'
+//   },
+//   {
+//     status_des: '中油清點中油車隊卡',
+//     icon_path: './vehicle_status/4.png'
+//   },
+//   {
+//     status_des: '鉅泰寄出中油車隊卡',
+//     icon_path: './vehicle_status/5.png'
+//   },
+//   {
+//     status_des: '掛號單號查詢',
+//     icon_path: './vehicle_status/6.png'
+//   }
+// ])
 
-const vehicle_status = ref(Math.floor(Math.random() * all_vehicle_status.value.length))
+// const vehicle_status = ref(Math.floor(Math.random() * all_vehicle_status.value.length))
 
 // 登出
 function logout() {
@@ -149,7 +149,7 @@ function logout() {
       <el-table-column align="center" prop="name" label="分公司名稱" min-width="140" />
       <el-table-column align="center" prop="vat_number" label="統一編號" />
     </el-table>
-    <hr />
+    <!-- <hr />
     <h2>車籍異動狀態</h2>
     <div id="vehicle-status" class="mt-5">
       <ul class="d-flex gap-5 justify-content-center align-items-center flex-wrap">
@@ -166,7 +166,7 @@ function logout() {
           <p>{{ item.status_des }}</p>
         </li>
       </ul>
-    </div>
+    </div> -->
   </div>
 </template>
 
