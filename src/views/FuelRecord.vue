@@ -120,7 +120,7 @@ async function fetchFuelData() {
       customerId: companyStore.company_info.customerId
     })
     fuel_record.value = response.data.data.map((item) => ({
-      team: `${item.acc_name}-${item.vehicle_type || ''}`,
+      team: `${item.acc_name}`,
       transaction_date: item.trade_time.split(' ')[0].replace(/\//g, '-'),
       transaction_time: item.trade_time.split(' ')[1],
       plate: item.license_plate,
