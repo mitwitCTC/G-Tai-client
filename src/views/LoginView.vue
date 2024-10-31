@@ -78,7 +78,7 @@ async function setCompanyInfo() {
       cus_code: customerId.value
     })
     company_info.value.customerId = response.data.data[0].cus_code
-    company_info.value.customerName = response.data.data[0].company_title
+    company_info.value.customerName = response.data.data[0].cus_name
     companyStore.setCompanyInfo(company_info.value)
   } catch (error) {
     console.error(error)
