@@ -45,12 +45,8 @@ const svg = `
 const isLoadingSubtotal_data = ref(false)
 const isLoadingFuel_record = ref(false)
 
-const subtotal_data = ref({
-  current_month_balance: 0,
-  last_month_balance: 0,
-  current_month_remittance_amount: 0,
-  current_month_fuel_total: 0
-})
+const subtotal_data = ref({})
+
 // 小計表格 label
 const subtotal_data_table_labels = computed(() => {
   // 儲值方式的資訊
@@ -58,54 +54,73 @@ const subtotal_data_table_labels = computed(() => {
     // 計算前一個月份
     const previous_month = current_month.value == 1 ? 12 : current_month.value - 1
     return [
-      {
-        label: `${current_month.value}月份餘額`,
-        prop: 'current_month_balance'
-      },
-      {
-        label: '',
-        prop: 'equal_sign'
-      },
-      {
-        label: `${previous_month}月份餘額`,
-        prop: 'last_month_balance'
-      },
-      {
-        label: '',
-        prop: 'plus_sign'
-      },
-      {
-        label: `${current_month.value}月份匯款`,
-        prop: 'current_month_remittance_amount'
-      },
-      {
-        label: '',
-        prop: 'minus_sign'
-      },
-      {
-        label: `${current_month.value}月份加油小計`,
-        prop: 'current_month_fuel_total'
-      }
+      { label: `${current_month.value}月份餘額`, prop: 'current_month_balance' },
+      { label: '', prop: 'equal_sign' },
+      { label: `${previous_month}月份餘額`, prop: 'last_month_balance' },
+      { label: '', prop: 'plus_sign' },
+      { label: `${current_month.value}月份匯款`, prop: 'current_month_remittance_amount' },
+      { label: '', prop: 'minus_sign' },
+      { label: `${current_month.value}月份加油小計`, prop: 'current_month_fuel_total' }
     ]
     // 月結方式的資訊
   } else if (transaction_mode.value == 2) {
-    return [
-      {
-        label: '擔保品種類',
-        prop: 'collateral_item'
-      },
-      {
-        label: '擔保品額度',
-        prop: 'collateral_value'
-      },
-      {
-        label: '款項繳費期限',
-        prop: 'payment_deadline'
+    // 根據 subtotal_data 的資料生成表格標籤
+    return collateral_data.value.split(', ').map((item) => {
+      const [label] = item.split(':')
+      return {
+        label: label.trim(),
+        prop: label.trim()
       }
-    ]
+    })
   }
-  return ''
+  return []
 })
+
+const collateral_data = ref('')
+// 取得匯款加油小計
+async function fetchSubtotalData() {
+  if (transaction_mode.value == 1) {
+    isLoadingSubtotal_data.value = true
+    try {
+      const response = await apiClient.post('/main/monthlyBalance', {
+        date: `${currentYear}-${current_month.value}`,
+        customerId: companyStore.company_info.customerId
+      })
+      subtotal_data.value.current_month_balance = formatNumber(
+        Number(response.data.data[0].thisMonthOverage)
+      )
+      subtotal_data.value.last_month_balance = formatNumber(Number(response.data.data[0].overage))
+      subtotal_data.value.current_month_remittance_amount = formatNumber(
+        Number(response.data.data[0].creditAmount)
+      )
+      subtotal_data.value.current_month_fuel_total = formatNumber(
+        Number(response.data.data[0].salesAmount)
+      )
+    } catch (error) {
+      console.error(error)
+    } finally {
+      isLoadingSubtotal_data.value = false
+    }
+  } else if (transaction_mode.value == 2) {
+    collateral_data.value =
+      '銀行定存:13560000 (111年定存單), 現金:0, 支票:0, 商業本票:0, 銀行保證:0, 無擔保:0, 其它:0'
+    parseCollateralData(collateral_data.value)
+  }
+}
+// 調整擔保品資料格式
+function parseCollateralData(data) {
+  const parsedData = {}
+  data.split(', ').forEach((item) => {
+    const [collateral_item, valueWithNote] = item.split(':')
+    const valueMatch = valueWithNote.match(/^(\d+)(?:\s*[([\s]?([^()[\]]+)[)\]]?)?$/)
+
+    parsedData[collateral_item.trim()] = valueMatch
+      ? `${formatNumber(Number(valueMatch[1]))} ${valueMatch[2] ? `(${valueMatch[2]})` : ''}`
+      : valueWithNote.trim()
+  })
+
+  subtotal_data.value = parsedData
+}
 
 const fuel_record = ref([])
 
@@ -139,35 +154,6 @@ async function fetchFuelData() {
     console.error(error)
   } finally {
     isLoadingFuel_record.value = false
-  }
-}
-
-// 取得匯款加油小計
-async function fetchSubtotalData() {
-  if (transaction_mode.value == 1) {
-    isLoadingSubtotal_data.value = true
-    try {
-      const response = await apiClient.post('/main/monthlyBalance', {
-        date: `${currentYear}-${current_month.value}`,
-        customerId: companyStore.company_info.customerId
-      })
-      subtotal_data.value.current_month_balance = Number(response.data.data[0].thisMonthOverage)
-      subtotal_data.value.last_month_balance = Number(response.data.data[0].overage)
-      subtotal_data.value.current_month_remittance_amount = Number(
-        response.data.data[0].creditAmount
-      )
-      subtotal_data.value.current_month_fuel_total = Number(response.data.data[0].salesAmount)
-    } catch (error) {
-      console.error(error)
-    } finally {
-      isLoadingSubtotal_data.value = false
-    }
-  } else if (transaction_mode.value == 2) {
-    subtotal_data.value = {
-      collateral_item: '現金',
-      collateral_value: 50000,
-      payment_deadline: '每月15日前'
-    }
   }
 }
 
@@ -342,7 +328,7 @@ function logout() {
           <span v-else-if="item.prop === 'minus_sign'">-</span>
           <!-- 渲染數值 -->
           <span v-else>
-            {{ formatNumber(scope.row[item.prop]) }}
+            {{ scope.row[item.prop] }}
           </span>
         </template>
       </el-table-column>

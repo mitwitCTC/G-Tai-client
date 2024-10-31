@@ -10,10 +10,10 @@ const searchAccountStore = useSearchAccountStore()
 // 預設當月
 const today = new Date()
 const currentYear = today.getFullYear()
-const currentMonth = String(today.getMonth() + 1).padStart(2, '0')
+const current_month = String(today.getMonth() + 1).padStart(2, '0')
 
-const search_month = ref(`${currentYear}-${currentMonth}`)
-const current_month = ref('')
+const search_month = ref(`${currentYear}-${current_month}`)
+const currentMonth = ref('')
 
 // API 根路由
 import apiClient from '@/api' // 載入 apiClient
@@ -27,88 +27,93 @@ onMounted(() => {
   checkTransaction_mode()
 })
 
-const subtotal_data = ref({
-  current_month_balance: 0,
-  last_month_balance: 0,
-  current_month_remittance_amount: 0,
-  current_month_fuel_total: 0
-})
+const subtotal_data = ref({})
 const isLoadingSubtotal_data = ref(false)
+// 小計表格 label
+const subtotal_data_table_labels = computed(() => {
+  // 儲值方式的資訊
+  if (transaction_mode.value == 1) {
+    // 計算前一個月份
+    const previous_month = currentMonth.value == 1 ? 12 : currentMonth.value - 1
+    return [
+      { label: `${currentMonth.value}月份餘額`, prop: 'current_month_balance' },
+      { label: '', prop: 'equal_sign' },
+      { label: `${previous_month}月份餘額`, prop: 'last_month_balance' },
+      { label: '', prop: 'plus_sign' },
+      { label: `${currentMonth.value}月份匯款`, prop: 'current_month_remittance_amount' },
+      { label: '', prop: 'minus_sign' },
+      { label: `${currentMonth.value}月份加油小計`, prop: 'current_month_fuel_total' }
+    ]
+    // 月結方式的資訊
+  } else if (transaction_mode.value == 2) {
+    // 根據 subtotal_data 的資料生成表格標籤
+    return collateral_data.value.split(', ').map((item) => {
+      const [label] = item.split(':')
+      return {
+        label: label.trim(),
+        prop: label.trim()
+      }
+    })
+  }
+  return []
+})
+
+const collateral_data = ref('')
 // 取得匯款加油小計
 async function fetchSubtotalData() {
+  updateCurrentMonth()
   if (transaction_mode.value == 1) {
+    isLoadingSubtotal_data.value = true
     try {
       const response = await apiClient.post('/main/monthlyBalance', {
         date: search_month.value,
         customerId: companyStore.company_info.customerId
       })
-      subtotal_data.value.date = `${search_month.value.split('-')[0] - 1911}/${search_month.value.split('-')[1]}`
-      subtotal_data.value.current_month_balance = Number(response.data.data[0].thisMonthOverage)
-      subtotal_data.value.last_month_balance = Number(response.data.data[0].overage)
-      subtotal_data.value.current_month_remittance_amount = Number(
-        response.data.data[0].creditAmount
+      subtotal_data.value.current_month_balance = formatNumber(
+        Number(response.data.data[0].thisMonthOverage)
       )
-      subtotal_data.value.current_month_fuel_total = Number(response.data.data[0].salesAmount)
+      subtotal_data.value.last_month_balance = formatNumber(Number(response.data.data[0].overage))
+      subtotal_data.value.current_month_remittance_amount = formatNumber(
+        Number(response.data.data[0].creditAmount)
+      )
+      subtotal_data.value.current_month_fuel_total = formatNumber(
+        Number(response.data.data[0].salesAmount)
+      )
     } catch (error) {
       console.error(error)
+    } finally {
+      isLoadingSubtotal_data.value = false
     }
   } else if (transaction_mode.value == 2) {
-    subtotal_data.value = {
-      collateral_item: '現金',
-      collateral_value: 50000,
-      payment_deadline: '每月15日前'
-    }
+    collateral_data.value =
+      '銀行定存:13560000 (111年定存單), 現金:0, 支票:0, 商業本票:0, 銀行保證:0, 無擔保:0, 其它:0'
+    parseCollateralData(collateral_data.value)
   }
+}
+// 調整擔保品資料格式
+function parseCollateralData(data) {
+  const parsedData = {}
+  data.split(', ').forEach((item) => {
+    const [collateral_item, valueWithNote] = item.split(':')
+    const valueMatch = valueWithNote.match(/^(\d+)(?:\s*[([\s]?([^()[\]]+)[)\]]?)?$/)
+
+    parsedData[collateral_item.trim()] = valueMatch
+      ? `${formatNumber(Number(valueMatch[1]))} ${valueMatch[2] ? `(${valueMatch[2]})` : ''}`
+      : valueWithNote.trim()
+  })
+
+  subtotal_data.value = parsedData
 }
 onMounted(() => {
   fetchSubtotalData()
 })
-
-// 小計表格 label
-const subtotal_data_table_labels = computed(() => {
-  // 儲值方式的資訊
-  if (transaction_mode.value == 1) {
-    return [
-      {
-        label: '年月',
-        prop: 'date'
-      },
-      {
-        label: '前期餘額',
-        prop: 'last_month_balance'
-      },
-      {
-        label: '*本期匯入金額(已扣除製卡費用)',
-        prop: 'current_month_remittance_amount'
-      },
-      {
-        label: '本期使用金額',
-        prop: 'current_month_remittance_amount'
-      },
-      {
-        label: '本期餘額',
-        prop: 'current_month_balance'
-      }
-    ]
-  } // 月結方式的資訊
-  else if (transaction_mode.value == 2) {
-    return [
-      {
-        label: '擔保品',
-        prop: 'collateral_item'
-      },
-      {
-        label: '擔保品價值',
-        prop: 'collateral_value'
-      },
-      {
-        label: '款項繳費期限',
-        prop: 'payment_deadline'
-      }
-    ]
+function updateCurrentMonth() {
+  if (search_month.value) {
+    currentMonth.value = search_month.value.split('-')[1]
+  } else {
+    currentMonth.value = ''
   }
-  return ''
-})
+}
 
 // 格式化數字
 function formatNumber(value) {
@@ -189,13 +194,23 @@ function logout() {
     <el-table class="mb-3" border :data="[subtotal_data]" v-loading="isLoadingSubtotal_data">
       <el-table-column
         align="center"
+        :min-width="
+          item.prop === 'equal_sign' || item.prop === 'plus_sign' || item.prop === 'minus_sign'
+            ? '50'
+            : '130'
+        "
         v-for="(item, index) in subtotal_data_table_labels"
         :key="index"
         :label="item.label"
       >
         <template #default="scope">
-          <span>
-            {{ formatNumber(scope.row[item.prop]) }}
+          <!-- 判斷符號欄位 -->
+          <span v-if="item.prop === 'equal_sign'">=</span>
+          <span v-else-if="item.prop === 'plus_sign'">+</span>
+          <span v-else-if="item.prop === 'minus_sign'">-</span>
+          <!-- 渲染數值 -->
+          <span v-else>
+            {{ scope.row[item.prop] }}
           </span>
         </template>
       </el-table-column>
@@ -210,7 +225,7 @@ function logout() {
       placeholder="請選擇查詢帳戶月份"
       @change="searchAccountGroup"
     />
-    <p class="mt-4">{{ current_month }}月份對帳單&發票檔案列表</p>
+    <p class="mt-4">{{ currentMonth }}月份對帳單&發票檔案列表</p>
     <el-table :data="reconciliationAndInvoice_list">
       <el-table-column
         prop="acc_name"
