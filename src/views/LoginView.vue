@@ -1,8 +1,21 @@
 <script setup>
 import router from '@/router'
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useCompanyStore } from '@/stores/companyStore'
 const companyStore = useCompanyStore()
+
+// 抓取路由參數自動登入跳轉
+onMounted(() => {
+  if (router.currentRoute.value.query.cca) {
+    const account = atob(router.currentRoute.value.query.cca)
+    const password = atob(router.currentRoute.value.query.dwp)
+    if (account && password) {
+      loginForm.value.account = account
+      loginForm.value.password = password
+      submitForm()
+    }
+  }
+})
 
 const loginForm = ref({
   account: '',
