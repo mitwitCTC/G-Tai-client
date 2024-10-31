@@ -65,13 +65,17 @@ const subtotal_data_table_labels = computed(() => {
     // 月結方式的資訊
   } else if (transaction_mode.value == 2) {
     // 根據 subtotal_data 的資料生成表格標籤
-    return collateral_data.value.split(', ').map((item) => {
-      const [label] = item.split(':')
-      return {
-        label: label.trim(),
-        prop: label.trim()
-      }
-    })
+    return [
+      // 從 subtotal_data 中生成標籤，但排除 payment_deadline
+      ...Object.keys(subtotal_data.value)
+        .filter((key) => key !== 'payment_deadline')
+        .map((key) => ({
+          label: key,
+          prop: key
+        })),
+      // 單獨新增款項繳費期限 label
+      { label: '款項繳費期限', prop: 'payment_deadline' }
+    ]
   }
   return []
 })
@@ -105,6 +109,7 @@ async function fetchSubtotalData() {
     collateral_data.value =
       '銀行定存:13560000 (111年定存單), 現金:0, 支票:0, 商業本票:0, 銀行保證:0, 無擔保:0, 其它:0'
     parseCollateralData(collateral_data.value)
+    subtotal_data.value.payment_deadline = '每月15日前'
   }
 }
 // 調整擔保品資料格式
