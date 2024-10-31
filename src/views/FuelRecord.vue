@@ -106,10 +106,20 @@ async function fetchSubtotalData() {
       isLoadingSubtotal_data.value = false
     }
   } else if (transaction_mode.value == 2) {
-    collateral_data.value =
-      '銀行定存:13560000 (111年定存單), 現金:0, 支票:0, 商業本票:0, 銀行保證:0, 無擔保:0, 其它:0'
-    parseCollateralData(collateral_data.value)
-    subtotal_data.value.payment_deadline = '每月15日前'
+    isLoadingSubtotal_data.value = true
+    try {
+      const response = await apiClient.post('/main/collateralInfo', {
+        cus_code: companyStore.company_info.customerId
+      })
+      collateral_data.value = response.data.data[0].config_notes
+      parseCollateralData(collateral_data.value)
+      const remittance_date = response.data.data[0].remittance_date
+      subtotal_data.value.payment_deadline = `每月${remittance_date}日前`
+    } catch (error) {
+      console.error(error)
+    } finally {
+      isLoadingSubtotal_data.value = false
+    }
   }
 }
 // 調整擔保品資料格式
