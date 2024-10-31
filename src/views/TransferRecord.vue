@@ -159,7 +159,7 @@ async function fetchTransferData() {
     transfer_record.value = response.data.data
     transfer_record.value = response.data.data.map((item) => ({
       scheduled_date: convertToGregorianDate(Number(item.account_date)), // 轉換日期格式
-      checkoutTime: item.checkoutTime === '0' ? '' : item.checkoutTime.split(' ')[0], // 轉換日期格式
+      checkoutTime: item.checkoutTime === '0' ? '' : item.checkoutTime.replace(/\//g, '-'), // 轉換日期格式
       remittance_amount: formatNumber(Number(item.amount)), // 格式化數字
       note: tradingModelMap[item.trading_model] || item.trading_model // 取得對應的 trading_model_des，若無則顯示原始 trading_model
     }))
