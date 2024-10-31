@@ -17,4 +17,10 @@ app.use(createPinia())
 app.use(router)
 app.use(ElementPlus, { locale: zhTw })
 
+window.addEventListener('storage', function (e) {
+  if (sessionStorage.getItem(e.key) !== null) {
+    this.sessionStorage.setItem(e.key, e.oldValue)
+  }
+})
+
 app.mount('#app')
