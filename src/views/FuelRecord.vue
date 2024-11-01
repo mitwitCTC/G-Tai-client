@@ -11,6 +11,15 @@ const today = new Date()
 const currentYear = today.getFullYear()
 const current_month = ref(String(today.getMonth() + 1).padStart(2, '0'))
 const search_month = ref(`${currentYear}-${current_month.value}`)
+const currentMonth = ref('')
+
+function updateCurrentMonth() {
+  if (search_month.value) {
+    currentMonth.value = search_month.value.split('-')[1]
+  } else {
+    currentMonth.value = ''
+  }
+}
 
 // API 根路由
 import apiClient from '@/api' // 載入 apiClient
@@ -83,6 +92,7 @@ const subtotal_data_table_labels = computed(() => {
 const collateral_data = ref('')
 // 取得匯款加油小計
 async function fetchSubtotalData() {
+  updateCurrentMonth()
   if (transaction_mode.value == 1) {
     isLoadingSubtotal_data.value = true
     try {
@@ -150,7 +160,7 @@ async function fetchFuelData() {
       customerId: companyStore.company_info.customerId
     })
     fuel_record.value = response.data.data.map((item) => ({
-      team: `${item.acc_name}`,
+      team: item.acc_name,
       transaction_date: item.trade_time.split(' ')[0].replace(/\//g, '-'),
       transaction_time: item.trade_time.split(' ')[1],
       plate: item.license_plate,
@@ -296,7 +306,7 @@ function exportExcel() {
   try {
     FileSaver.saveAs(
       new Blob([wbout], { type: 'application/octet-stream' }),
-      `${current_month.value}月加油交易明細.xlsx`
+      `${currentMonth.value}月加油交易明細.xlsx`
     )
   } catch (e) {
     if (console) {
@@ -357,7 +367,7 @@ function logout() {
       placeholder="請選擇查詢帳戶月份"
     />
     <div class="d-flex justify-content-between align-items-center my-3">
-      <p class="m-0">{{ current_month }}月份交易明細</p>
+      <p class="m-0">{{ currentMonth }}月份交易明細</p>
       <button class="btn btn-warning" @click="exportExcel">匯出</button>
     </div>
 
