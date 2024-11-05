@@ -49,8 +49,7 @@ async function getContact_data() {
       job_title: item.job_title,
       name: item.name,
       mobile: item.mobile,
-      mail: item.mail,
-      notes: item.notes
+      mail: item.mail
     }))
   } catch (error) {
     console.error(error)
@@ -141,7 +140,6 @@ function logout() {
       <el-table-column align="center" prop="name" label="聯絡人姓名" min-width="100" />
       <el-table-column align="center" prop="mobile" label="聯絡人電話" min-width="120" />
       <el-table-column align="center" prop="mail" label="聯絡人信箱" min-width="200" />
-      <el-table-column align="center" prop="notes" label="備註" />
     </el-table>
     <hr />
     <!-- 分公司資料表 -->
