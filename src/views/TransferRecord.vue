@@ -9,6 +9,7 @@ const today = new Date()
 const currentYear = today.getFullYear()
 const current_month = ref(String(today.getMonth() + 1).padStart(2, '0'))
 const transfer_search_month = ref(`${currentYear}-${current_month.value}`)
+const currentMonth = ref('')
 
 // API 根路由
 import apiClient from '@/api' // 載入 apiClient
@@ -49,15 +50,15 @@ const subtotal_data_table_labels = computed(() => {
   // 儲值方式的資訊
   if (transaction_mode.value == 1) {
     // 計算前一個月份
-    const previous_month = current_month.value == 1 ? 12 : current_month.value - 1
+    const previous_month = currentMonth.value == 1 ? 12 : currentMonth.value - 1
     return [
-      { label: `${current_month.value}月份餘額`, prop: 'current_month_balance' },
+      { label: `${currentMonth.value}月份餘額`, prop: 'current_month_balance' },
       { label: '', prop: 'equal_sign' },
       { label: `${previous_month}月份餘額`, prop: 'last_month_balance' },
       { label: '', prop: 'plus_sign' },
-      { label: `${current_month.value}月份匯款`, prop: 'current_month_remittance_amount' },
+      { label: `${currentMonth.value}月份匯款`, prop: 'current_month_remittance_amount' },
       { label: '', prop: 'minus_sign' },
-      { label: `${current_month.value}月份加油小計`, prop: 'current_month_fuel_total' }
+      { label: `${currentMonth.value}月份加油小計`, prop: 'current_month_fuel_total' }
     ]
     // 月結方式的資訊
   } else if (transaction_mode.value == 2) {
@@ -77,14 +78,23 @@ const subtotal_data_table_labels = computed(() => {
   return []
 })
 
+function updateCurrentMonth() {
+  if (transfer_search_month.value) {
+    currentMonth.value = transfer_search_month.value.split('-')[1]
+  } else {
+    currentMonth.value = ''
+  }
+}
+
 const collateral_data = ref('')
 // 取得匯款加油小計
 async function fetchSubtotalData() {
+  updateCurrentMonth()
   if (transaction_mode.value == 1) {
     isLoadingSubtotal_data.value = true
     try {
       const response = await apiClient.post('/main/monthlyBalance', {
-        date: `${currentYear}-${current_month.value}`,
+        date: transfer_search_month.value,
         customerId: companyStore.company_info.customerId
       })
       subtotal_data.value.current_month_balance = formatNumber(
