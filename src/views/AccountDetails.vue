@@ -79,8 +79,7 @@ function groupDataByPlateAndProduct() {
           product_name: item.product_name, // 顯示油品名稱
           quantity: acc.quantity + Number(item.quantity),
           list_price_subtotal: acc.list_price_subtotal + Number(item.list_price_subtotal),
-          subtotal: acc.subtotal + Number(item.subtotal),
-          mileage: acc.mileage + Number(item.mileage)
+          subtotal: acc.subtotal + Number(item.subtotal)
         }),
         {
           product_name: '',
@@ -90,6 +89,9 @@ function groupDataByPlateAndProduct() {
           mileage: 0
         }
       )
+
+      // 計算該組別的里程數差值
+      const mileageDifference = group.data[group.data.length - 1].mileage - group.data[0].mileage
       // 插入小計行
       grouped.push({
         plate: '小計',
@@ -101,7 +103,7 @@ function groupDataByPlateAndProduct() {
         discount: '', // 折讓不顯示
         list_price_subtotal: subtotal.list_price_subtotal, // 牌價金額總計
         subtotal: subtotal.subtotal, // 售價小計總計
-        mileage: subtotal.mileage, // 最後一筆里程數
+        mileage: mileageDifference, // 里程數差額
         isSummary: true // 標記為小計行
       })
     })
