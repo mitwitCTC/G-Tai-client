@@ -2,6 +2,7 @@
 import { useCompanyStore } from '@/stores/companyStore'
 import router from '@/router'
 import { ref, onMounted } from 'vue'
+import { ElLoading } from 'element-plus'
 const navItems = ref([
   {
     name: '客戶資料',
@@ -26,8 +27,18 @@ const navItems = ref([
 ])
 const companyStore = useCompanyStore()
 const company_info = ref({})
+let loadingInstance = null
 function fetchCompanyInfo() {
+  // 顯示 loading 遮罩
+  loadingInstance = ElLoading.service({
+    fullscreen: true,
+    text: '載入中...',
+    background: 'rgba(0, 0, 0, 0.5)'
+  })
   company_info.value = companyStore.company_info
+  if (company_info.value != {}) {
+    loadingInstance.close()
+  }
 }
 onMounted(() => {
   fetchCompanyInfo()
