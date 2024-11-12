@@ -32,7 +32,7 @@ async function fetchCarFuelDetails() {
       plate: item.license_plate,
       transaction_date_time: item.trade_time,
       station: item.station_name,
-      product_name: item.fuel_type,
+      product_name: getProductName(item.fuel_type),
       unit_price: Number(item.reference_price),
       quantity: Number(item.fuel_volume),
       discount: Number(item.discount),
@@ -46,6 +46,18 @@ async function fetchCarFuelDetails() {
     isLoading.value = false
   }
   groupDataByPlateAndProduct()
+}
+
+// 調整油品欄位資料
+function getProductName(fuelType) {
+  let productName = fuelType.split(' ')[1] || fuelType
+  const fuelTypes = ['92無鉛', '95無鉛', '98無鉛']
+
+  if (fuelTypes.some((type) => productName.startsWith(type))) {
+    productName += '汽油'
+  }
+
+  return productName
 }
 
 // 根據車牌和油品分組，並插入小計行

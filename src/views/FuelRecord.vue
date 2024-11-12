@@ -165,7 +165,7 @@ async function fetchFuelData() {
       transaction_time: item.trade_time.split(' ')[1],
       plate: item.license_plate,
       station: item.station_name,
-      product_name: item.fuel_type,
+      product_name: getProductName(item.fuel_type),
       quantity: Number(item.fuel_volume) || 0,
       unit_price: Number(item.reference_price) || 0,
       discount: Number(item.discount) || 0,
@@ -180,6 +180,18 @@ async function fetchFuelData() {
   } finally {
     isLoadingFuel_record.value = false
   }
+}
+
+// 調整油品欄位資料
+function getProductName(fuelType) {
+  let productName = fuelType.split(' ')[1] || fuelType
+  const fuelTypes = ['92無鉛', '95無鉛', '98無鉛']
+
+  if (fuelTypes.some((type) => productName.startsWith(type))) {
+    productName += '汽油'
+  }
+
+  return productName
 }
 
 // 確認交易方式為儲值或月結 (1為儲值；2為月結)
