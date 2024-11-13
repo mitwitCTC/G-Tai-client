@@ -195,7 +195,7 @@ function exportExcel() {
 
         if (cell && !isNaN(parseFloat(cell.v))) {
           cell.t = 'n' // 將儲存格格式設為數字
-          cell.v = parseFloat(cell.v) // 確保數值正確格式化
+          cell.z = '#,##0' // 將格式設定為帶有千分位
         } else {
           cell.v = 0 // 若不是數字則設為 0
         }

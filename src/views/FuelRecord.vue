@@ -278,6 +278,7 @@ function exportExcel() {
       // 若欄位名稱在 fieldMap 中，且符合 numberFields
       if (R > 0 && numberFields.includes(fieldMap[columnHeader])) {
         cell.t = 'n' // 確保儲存格是數字格式
+        cell.z = '#,##0' // 將格式設定為帶有千分位
         if (isNaN(cell.v)) {
           cell.v = 0 // 若儲存格的值不是數字，則預設為 0
         }
