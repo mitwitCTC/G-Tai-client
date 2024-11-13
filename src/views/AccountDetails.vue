@@ -30,7 +30,8 @@ async function fetchCarFuelDetails() {
     })
     car_fuel_details.value = response.data.data.map((item) => ({
       plate: item.license_plate,
-      transaction_date_time: item.trade_time,
+      transaction_date: item.trade_time.split(' ')[0],
+      transaction_time: item.trade_time.split(' ')[1],
       station: item.station_name,
       product_name: getProductName(item.fuel_type),
       unit_price: Number(item.reference_price),
@@ -95,7 +96,8 @@ function groupDataByPlateAndProduct() {
       // 插入小計行
       grouped.push({
         plate: '小計',
-        transaction_date_time: '',
+        transaction_date: '',
+        transaction_time: '',
         station: '',
         product_name: subtotal.product_name, // 油品名稱
         unit_price: '', // 不顯示單價
@@ -276,12 +278,8 @@ function logout() {
       :span-method="mergeCells"
     >
       <el-table-column align="center" min-width="80" prop="plate" label="車牌" />
-      <el-table-column
-        align="center"
-        min-width="150"
-        prop="transaction_date_time"
-        label="交易日期時間"
-      />
+      <el-table-column align="center" min-width="150" prop="transaction_date" label="交易日期" />
+      <el-table-column align="center" min-width="150" prop="transaction_time" label="交易時間" />
       <el-table-column align="center" min-width="180" prop="station" label="加油站" />
       <el-table-column align="center" min-width="180" prop="product_name" label="油品" />
       <el-table-column align="center" min-width="80" label="單價">
