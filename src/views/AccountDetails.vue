@@ -162,15 +162,17 @@ function exportExcel() {
     里程數: 'mileage'
   }
 
-  const numberFields = [
-    'unit_price',
-    'quantity',
-    'discount',
-    'list_price_subtotal',
-    'subtotal',
-    'mileage',
-    'fuel_consumption'
-  ]
+  const formatRules = {
+    unit_price: '#,##0.0', // 單價保留一位小數
+    discount: '#,##0.0', // 折讓保留一位小數
+    quantity: '#,##0.00', // 油量保留一位小數
+    list_price_subtotal: '#,##0',
+    subtotal: '#,##0',
+    mileage: '#,##0'
+  }
+
+  // 所有需要格式化的數字欄位
+  const numberFields = Object.keys(formatRules)
 
   for (let R = range.s.r; R <= range.e.r; ++R) {
     for (let C = range.s.c; C <= range.e.c; ++C) {
@@ -185,21 +187,28 @@ function exportExcel() {
       ws[cell_ref].s.alignment = { horizontal: 'center', vertical: 'center' }
 
       // 取得欄位名稱，進行對應映射
-      let columnHeader = ws[XLSX.utils.encode_cell({ c: C, r: 0 })].v.toString().trim()
+      let columnHeader = ws[XLSX.utils.encode_cell({ c: C, r: 0 })]?.v?.toString()?.trim()
 
-      // 若欄位名稱在 fieldMap 中，且符合 numberFields
-      if (R > 0 && numberFields.includes(fieldMap[columnHeader])) {
-        // 移除千位分隔符後再轉換為數字
-        if (cell && typeof cell.v === 'string') {
-          // 將數字中的千位逗號去除
-          cell.v = cell.v.replace(/,/g, '')
-        }
+      if (R > 0 && fieldMap[columnHeader]) {
+        const field = fieldMap[columnHeader]
 
-        if (cell && !isNaN(parseFloat(cell.v))) {
-          cell.t = 'n' // 將儲存格格式設為數字
-          cell.z = '#,##0' // 將格式設定為帶有千分位
-        } else {
-          cell.v = 0 // 若不是數字則設為 0
+        // 檢查是否需要格式化
+        if (numberFields.includes(field)) {
+          // 移除千位分隔符後再轉換為數字
+          if (cell && typeof cell.v === 'string') {
+            cell.v = cell.v.replace(/,/g, '') // 去除千位分隔符
+          }
+
+          if (cell && !isNaN(parseFloat(cell.v))) {
+            cell.t = 'n' // 將儲存格格式設為數字
+            cell.z = formatRules[field] // 根據格式規則設置格式
+          } else {
+            cell.v = 0 // 若不是數字則設為 0
+          }
+        } else if (!isNaN(cell.v)) {
+          // 對其他數字欄位使用預設千分位格式
+          cell.t = 'n'
+          cell.z = '#,##0' // 千分位格式
         }
       }
     }

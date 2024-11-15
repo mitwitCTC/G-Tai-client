@@ -249,16 +249,14 @@ function exportExcel() {
     油耗: 'fuel_consumption'
   }
 
-  const numberFields = [
-    'quantity',
-    'unit_price',
-    'discount',
-    'list_price_subtotal',
-    'discount_subtotal',
-    'subtotal',
-    'mileage',
-    'fuel_consumption'
-  ]
+  const formatRules = {
+    quantity: '#,##0.00', // 數量保留兩位小數
+    unit_price: '#,##0.0', // 單價保留一位小數
+    discount: '#,##0.0', // 折讓保留兩位小數
+    fuel_consumption: '#,##0.00' // 油耗保留兩位小數
+  }
+
+  const numberFields = Object.keys(formatRules)
 
   for (let R = range.s.r; R <= range.e.r; ++R) {
     for (let C = range.s.c; C <= range.e.c; ++C) {
@@ -273,14 +271,20 @@ function exportExcel() {
       ws[cell_ref].s.alignment = { horizontal: 'center', vertical: 'center' }
 
       // 取得欄位名稱，進行對應映射
-      let columnHeader = ws[XLSX.utils.encode_cell({ c: C, r: 0 })].v.toString().trim()
+      let columnHeader = ws[XLSX.utils.encode_cell({ c: C, r: 0 })]?.v?.toString()?.trim()
 
-      // 若欄位名稱在 fieldMap 中，且符合 numberFields
-      if (R > 0 && numberFields.includes(fieldMap[columnHeader])) {
-        cell.t = 'n' // 確保儲存格是數字格式
-        cell.z = '#,##0' // 將格式設定為帶有千分位
-        if (isNaN(cell.v)) {
-          cell.v = 0 // 若儲存格的值不是數字，則預設為 0
+      if (R > 0 && fieldMap[columnHeader]) {
+        const field = fieldMap[columnHeader]
+        if (numberFields.includes(field)) {
+          cell.t = 'n' // 確保儲存格是數字格式
+          cell.z = formatRules[field] // 設置格式
+          if (isNaN(cell.v)) {
+            cell.v = 0 // 若儲存格的值不是數字，則預設為 0
+          }
+        } else if (!isNaN(cell.v)) {
+          // 對其他數字欄位使用預設千分位格式
+          cell.t = 'n'
+          cell.z = '#,##0'
         }
       }
     }
