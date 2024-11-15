@@ -267,7 +267,7 @@ function logout() {
       <span>對帳單明細</span>
     </h4>
     <div class="d-flex justify-content-end mb-3">
-      <button class="btn btn-warning" @click="exportExcel">匯出</button>
+      <button class="btn btn-warning" @click="exportExcel" :disabled="isLoading">匯出</button>
     </div>
     <el-table
       border

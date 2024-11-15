@@ -381,7 +381,9 @@ function logout() {
     />
     <div class="d-flex justify-content-between align-items-center my-3">
       <p class="m-0">{{ currentMonth }}月份交易明細</p>
-      <button class="btn btn-warning" @click="exportExcel">匯出</button>
+      <button class="btn btn-warning" @click="exportExcel" :disabled="isLoadingFuel_record">
+        匯出
+      </button>
     </div>
 
     <div class="search d-flex mb-3 col-12 col-md-3">
