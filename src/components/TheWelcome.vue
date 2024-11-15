@@ -1,7 +1,7 @@
 <script setup>
 import { useCompanyStore } from '@/stores/companyStore'
 import router from '@/router'
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { ElLoading } from 'element-plus'
 const navItems = ref([
   {
@@ -26,7 +26,7 @@ const navItems = ref([
   }
 ])
 const companyStore = useCompanyStore()
-const company_info = ref({})
+const company_info = ref({ customerId: '', customerName: '' })
 let loadingInstance = null
 function fetchCompanyInfo() {
   // 顯示 loading 遮罩
@@ -35,9 +35,27 @@ function fetchCompanyInfo() {
     text: '載入中...',
     background: 'rgba(0, 0, 0, 0.5)'
   })
-  company_info.value = companyStore.company_info
-  if (company_info.value != {}) {
-    loadingInstance.close()
+
+  const storedInfo = sessionStorage.getItem('company_info')
+  if (storedInfo) {
+    company_info.value = JSON.parse(storedInfo)
+    setTimeout(() => {
+      loadingInstance.close()
+    }, 1000)
+  } else {
+    watch(
+      () => companyStore.company_info,
+      (newInfo) => {
+        if (newInfo.customerName) {
+          company_info.value = newInfo
+          sessionStorage.setItem('company_info', JSON.stringify(newInfo))
+          setTimeout(() => {
+            loadingInstance.close()
+          }, 1000)
+        }
+      },
+      { immediate: true }
+    )
   }
 }
 onMounted(() => {
@@ -54,8 +72,8 @@ function logout() {
   <div class="container">
     <div class="company-info mt-5 d-flex justify-content-between align-itemns-center">
       <h3>
-        {{ companyStore.company_info.customerName }}
-        <span>({{ companyStore.company_info.customerId }})</span>
+        {{ company_info.customerName }}
+        <span v-if="company_info.customerId">({{ company_info.customerId }})</span>
       </h3>
       <button class="btn btn-yellow" @click="logout">登出</button>
     </div>
