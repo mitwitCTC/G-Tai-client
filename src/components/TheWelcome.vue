@@ -79,7 +79,10 @@ function logout() {
     </div>
     <ul class="nav-list mt-5">
       <li class="item" v-for="(item, index) in navItems" :key="index">
-        <router-link :to="item.path">
+        <router-link :to="{
+        path: item.path,
+        query: { customerName: company_info.customerName }
+      }">
           <div class="nav-body">
             <i :class="item.icon_path" class="nav-icon"></i>
             <p class="nav-text">{{ item.name }}</p>

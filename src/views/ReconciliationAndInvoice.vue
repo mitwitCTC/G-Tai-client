@@ -6,7 +6,10 @@ const companyStore = useCompanyStore()
 // 查詢對帳單總表及對帳單明細
 import { useSearchAccountStore } from '@/stores/accountStore'
 const searchAccountStore = useSearchAccountStore()
-
+//JASON 2024.11.22 傳值
+import { useRoute } from 'vue-router'
+const route = useRoute()
+const customerName = route.query.customerName
 // 預設當月
 const today = new Date()
 const currentYear = today.getFullYear()
@@ -181,11 +184,15 @@ const goToAccountStatement = (account_sortId) => {
   searchAccountStore.setSearchAccount(searchAccount_info)
   router.push('/accountStatement')
 }
-const goToAccountDetails = (account_sortId) => {
+//JASON 2024.11.22 acc_name:帳單名稱 invoice_name:抬頭
+const goToAccountDetails = (account_sortId,acc_name,invoice_name) => {
   const searchAccount_info = {
     date: search_month.value,
     account_sortId: account_sortId,
-    customerId: companyStore.company_info.customerId
+    customerId: companyStore.company_info.customerId,
+    acc_name:acc_name,
+    invoice_name:invoice_name,
+    customerName:customerName
   }
   searchAccountStore.setSearchAccount(searchAccount_info)
   router.push('/accountDetails')
@@ -259,7 +266,7 @@ function logout() {
 
       <el-table-column prop="account_sortId" label="帳單明細" align="center" min-width="120">
         <template #default="{ row }">
-          <router-link to="accountDetails" @click="goToAccountDetails(row.account_sortId)">
+          <router-link to="accountDetails" @click="goToAccountDetails(row.account_sortId,row.acc_name,row.invoice_name)">
             明細
           </router-link>
         </template>
