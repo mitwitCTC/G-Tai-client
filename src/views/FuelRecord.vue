@@ -227,7 +227,6 @@ const filteredFuelData = computed(() => {
 })
 
 // 匯出 
-//JASON TEST PUSH
 function exportExcel() {
   let xlsxParam = { raw: true }
   let wb = XLSX.utils.table_to_book(document.querySelector('#fuel_data'), xlsxParam)
