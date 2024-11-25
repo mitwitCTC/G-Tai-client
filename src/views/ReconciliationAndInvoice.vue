@@ -172,7 +172,7 @@ onMounted(() => {
 })
 
 // 跳轉到對應的頁面
-const goToAccountStatement = (account_sortId) => {
+const goToAccountStatement = (account_sortId,acc_name,invoice_name) => {
   const searchAccount_info = {
     date: search_month.value,
     account_sortId: account_sortId,

@@ -56,7 +56,6 @@ async function exportToExcel2() {
         row.isSummary
       ])
       // 起始行
-      console.log(JSON.stringify(data))
       let startRow = 7
       const summaryRows = [] // 用來記錄小計行的行號
       data.forEach((rowData, rowIndex) => {
