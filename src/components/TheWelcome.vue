@@ -1,8 +1,11 @@
 <script setup>
 import { useCompanyStore } from '@/stores/companyStore'
 import router from '@/router'
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch, reactive } from 'vue'
 import { ElLoading } from 'element-plus'
+// API 根路由
+import apiClient from '@/api' // 載入 apiClient
+
 const navItems = ref([
   {
     name: '客戶資料',
@@ -66,6 +69,90 @@ function logout() {
   sessionStorage.clear()
   router.push('/login')
 }
+
+// 修改密碼
+const updatePassworForm = ref({
+  cus_code: '',
+  front_pwd: '',
+  newfront_pwd: '',
+  newfront_pwd_check: ''
+})
+onMounted(() => {
+  updatePassworForm.value.cus_code = company_info.value.customerId
+})
+const updatePasswordDialogVisible = ref(false)
+// 表單驗證規則
+const rules = reactive({
+  front_pwd: [{ required: true, message: '此欄位為必填', trigger: 'blur' }],
+  newfront_pwd: [
+    { required: true, message: '此欄位為必填', trigger: 'blur' },
+    { validator: validatePasswordNotSameAsOld, trigger: 'blur' },
+    { min: 6, message: '至少需要 6 個英文或數字' }
+  ],
+  newfront_pwd_check: [
+    { required: true, message: '此欄位為必填', trigger: 'blur' },
+    { validator: validateNewPassword, trigger: 'blur' }
+  ]
+})
+// 密碼確認的規則
+function validateNewPassword(rule, value, callback) {
+  if (value !== updatePassworForm.value.newfront_pwd) {
+    callback(new Error('新密碼與確認密碼不一致'))
+  } else {
+    callback()
+  }
+}
+function validatePasswordNotSameAsOld(rule, value, callback) {
+  if (value == updatePassworForm.value.front_pwd) {
+    callback(new Error('新密碼不得與原密碼相同'))
+  } else {
+    callback()
+  }
+}
+const updatePassword_result = ref('')
+function setUpdatePasswordResult(message) {
+  updatePassword_result.value = message
+  setTimeout(() => {
+    updatePassword_result.value = ''
+  }, 3000)
+}
+
+function resetUpdatePasswordResult() {
+  setTimeout(() => {
+    updatePassword_result.value = ''
+  }, 3000)
+}
+
+const ruleFormRef = ref(null)
+async function submitForm() {
+  ruleFormRef.value.validate(async (valid) => {
+    if (valid) {
+      const response = await apiClient.post('/main/updatePassword', {
+        cus_code: updatePassworForm.value.cus_code,
+        front_pwd: updatePassworForm.value.front_pwd,
+        newfront_pwd: updatePassworForm.value.newfront_pwd
+      })
+      try {
+        if (response.data.returnCode == 0) {
+          setUpdatePasswordResult(response.data.message)
+          setTimeout(() => {
+            console.clear()
+            logout()
+          }, 2000)
+        } else if (response.data.returnCode == -1) {
+          setUpdatePasswordResult(response.data.message)
+        } else {
+          console.error(response.data)
+        }
+      } catch (error) {
+        console.error(error)
+      }
+    } else {
+      return false
+    }
+  })
+  resetUpdatePasswordResult()
+}
 </script>
 
 <template>
@@ -94,13 +181,66 @@ function logout() {
           </div>
         </a>
       </li>
-      <li class="item">
-        <div class="nav-body">
+      <li class="item pointer">
+        <div class="nav-body" @click="updatePasswordDialogVisible = true">
           <i class="bi bi-shield-lock"></i>
           <p class="nav-text">變更密碼</p>
         </div>
       </li>
     </ul>
+    <el-dialog v-model="updatePasswordDialogVisible" title="變更密碼" width="500" align-center>
+      <el-alert
+        v-if="updatePassword_result"
+        :title="updatePassword_result"
+        :type="updatePassword_result == '修改密碼成功' ? 'success' : 'error'"
+        show-icon
+      />
+      <el-form
+        ref="ruleFormRef"
+        :model="updatePassworForm"
+        :rules="rules"
+        label-width="auto"
+        status-icon
+        @keydown.enter.prevent
+      >
+        <el-form-item label="客戶代號" prop="cus_code">
+          <el-input disabled v-model="updatePassworForm.cus_code" type="text" />
+        </el-form-item>
+        <el-form-item label="原密碼" prop="front_pwd">
+          <el-input
+            v-model="updatePassworForm.front_pwd"
+            type="password"
+            placeholder="請輸入原密碼"
+            show-password
+          />
+        </el-form-item>
+        <el-form-item label="新密碼" prop="newfront_pwd">
+          <el-input
+            v-model="updatePassworForm.newfront_pwd"
+            type="password"
+            placeholder="請輸入新密碼"
+            show-password
+          />
+        </el-form-item>
+        <el-form-item label="新密碼確認" prop="newfront_pwd_check">
+          <el-input
+            v-model="updatePassworForm.newfront_pwd_check"
+            type="password"
+            placeholder="請再次輸入新密碼確認"
+            show-password
+            @keyup.enter="submitForm(updatePassworForm)"
+          />
+        </el-form-item>
+        <div class="d-flex justify-content-end gap-3">
+          <button class="btn btn-outline-secondary" @click="updatePasswordDialogVisible = false">
+            取消
+          </button>
+          <button class="btn btn-warning text-white" @click="submitForm(updatePassworForm)">
+            確認修改
+          </button>
+        </div>
+      </el-form>
+    </el-dialog>
   </div>
 </template>
 
@@ -144,5 +284,9 @@ function logout() {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.pointer {
+  cursor: pointer;
 }
 </style>
