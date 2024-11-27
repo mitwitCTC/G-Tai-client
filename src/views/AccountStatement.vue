@@ -27,7 +27,6 @@ async function fetchCarSummaryData() {
       account_sortId: searchAccountStore.searchAccount.account_sortId
     })
     data4.value = response.data.data.product
-    console.log(JSON.stringify(data4.value))
     car_summary_data.value = response.data.data.details.map((item) => ({
       year_month: bill_year.value - 1911 + '/' + bill_month.value,
       plate: item.license_plate,
