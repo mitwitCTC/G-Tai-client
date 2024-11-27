@@ -34,9 +34,9 @@ async function exportToExcel2() {
       //公司資訊
       let rowstitle = [
         [date],
-        [`公司名稱：${customerName}`],
-        [`發票抬頭：${invoice_name}`],
-        [`帳單組別：${acc_name}`]
+        [`${customerName}`],
+        [`${invoice_name}`],
+        [`${acc_name}`]
       ]
       rowstitle.forEach((row, index) => {
         worksheet.getCell(`B${1 + index}`).value = row[0] // 將每一行的第一列資料放入指定儲存格

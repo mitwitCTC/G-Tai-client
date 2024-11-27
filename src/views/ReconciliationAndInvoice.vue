@@ -98,6 +98,7 @@ async function fetchSubtotalData() {
       parseCollateralData(collateral_data.value)
       const remittance_date = response.data.data[0].remittance_date
       subtotal_data.value.payment_deadline = `每月${remittance_date}日前`
+      
     } catch (error) {
       console.error(error)
     } finally {
@@ -179,7 +180,13 @@ const goToAccountStatement = (account_sortId,acc_name,invoice_name) => {
     customerId: companyStore.company_info.customerId,
     acc_name:acc_name,
     invoice_name:invoice_name,
-    customerName:companyStore.company_info.customerName
+    customerName:companyStore.company_info.customerName,
+    transaction_mode:transaction_mode.value,//交易模式
+    last_month_balance:subtotal_data.value.last_month_balance,//前期餘額
+    current_month_remittance_amount:subtotal_data.value.current_month_remittance_amount,//本期匯入
+    current_month_fuel_total:subtotal_data.value.current_month_fuel_total,//本期使用
+    current_month_balance:subtotal_data.value.current_month_balance,//本期餘額
+    payment_deadline:subtotal_data.value.payment_deadline//月結繳款期限
   }
   searchAccountStore.setSearchAccount(searchAccount_info)
   router.push('/accountStatement')
@@ -257,7 +264,7 @@ function logout() {
 
       <el-table-column prop="account_sortId" label="帳單總表" align="center" min-width="120">
         <template #default="{ row }">
-          <router-link to="accountStatement" @click="goToAccountStatement(row.account_sortId)">
+          <router-link to="accountStatement" @click="goToAccountStatement(row.account_sortId,row.acc_name,row.invoice_name)">
             總表
           </router-link>
         </template>
