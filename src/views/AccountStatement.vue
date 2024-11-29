@@ -17,6 +17,7 @@ import apiClient from '@/api' // 載入 apiClient
 const isLoading = ref(false)
 const car_summary_data = ref([])
 const data4 = ref([])
+const data5 = ref([])
 // 取得車輛加油概要資料
 async function fetchCarSummaryData() {
   isLoading.value = true
@@ -27,6 +28,7 @@ async function fetchCarSummaryData() {
       account_sortId: searchAccountStore.searchAccount.account_sortId
     })
     data4.value = response.data.data.product
+    data5.value = response.data.data.cardIssuanceFee
     car_summary_data.value = response.data.data.details.map((item) => ({
       year_month: bill_year.value - 1911 + '/' + bill_month.value,
       plate: item.license_plate,
@@ -77,6 +79,7 @@ async function exportToExcel() {
       const current_month_fuel_total = searchAccountStore.searchAccount.current_month_fuel_total //本期使用
       const current_month_balance = searchAccountStore.searchAccount.current_month_balance //本期餘額
       const payment_deadline = searchAccountStore.searchAccount.payment_deadline //月結繳款期限
+      const config_notes = searchAccountStore.searchAccount.config_notes //擔保品
       const summary_data = car_summary_data.value.map((row) => [
         row.year_month,
         row.plate,
@@ -118,12 +121,29 @@ async function exportToExcel() {
           }
           return sum // 略過不符合條件的行
         }, 0)
+        const items = config_notes.split(', ').map((item) => {
+          const match = item.match(/(.+):\s*([\d]+)(.*)/)
+          if (match) {
+            return {
+              config: match[1].trim(), // 提取前面的項目
+              config_value: match[2].trim() + match[3]?.trim() // 提取數值
+            }
+          }
+          return null
+        })
+        const filteredItems = items.filter((item) => item && item.config_value != 0)
+        
+        // 分別取出 config 和 config_value
+        const configs = filteredItems.map((item) => item.config)
+        const config_values = filteredItems.map((item) => item.config_value)
         const data = [
-          `${summary_data[0][0]}`,
-          `${last_month_balance}`,
+          `${configs}`,
+          `${config_values}`,
           `${payment_deadline}`,
           `${total}`
         ]
+        worksheet.getCell('A7').value = data[0]
+        worksheet.getCell('C7').value = data[1]
         worksheet.getCell('E7').value = data[2]
         worksheet.getCell('G7').value = data[3]
         worksheet.getCell('G7').value = parseFloat(data[3]) // 轉數值
@@ -165,7 +185,6 @@ async function exportToExcel() {
       const header2 = ['品項', '公升數總計', '牌價總計', '售價總計']
       const lastRowNum = lastRowNumber + 1
       // 使用 String.fromCharCode() 將列編號轉成字母
-      // const data4=[ ["超級柴油",1000,34410,344],["無鉛汽油",2000,3,344666],["尿素溶液",3000.5610,555,444],["諾瓦尿素",4000.5610,123131,123131231]]
       const endRow2 = lastRowNum + data4.value.length + 1 // 結束行+標題
 
       for (let row = lastRowNum + 1; row <= endRow2; row++) {
@@ -244,6 +263,119 @@ async function exportToExcel() {
         left: { style: 'thin', color: { argb: 'C0C0C0' } },
         bottom: { style: 'thin', color: { argb: 'C0C0C0' } },
         right: { style: 'thin', color: { argb: 'C0C0C0' } }
+      }
+      //製卡資料
+      if (data5.value.length > 0) {
+        const thelastrow = lastrow + 2
+        const header3 = ['製作日期', '車牌號碼', '車隊卡卡號', '製卡類別', '製卡費用']
+        // 使用 String.fromCharCode() 將列編號轉成字母
+
+        const endRow3 = thelastrow + data5.value.length // 結束行+標題
+
+        for (let row = thelastrow; row <= endRow3; row++) {
+          for (let col = startCol.charCodeAt(0); col <= 71; col++) {
+            const cell = worksheet.getCell(`${String.fromCharCode(col)}${row}`)
+            if (col != 65) {
+              if (col % 2 == 1) {
+                worksheet.mergeCells(
+                  `${String.fromCharCode(col)}${row}:${String.fromCharCode(col + 1)}${row}`
+                )
+              }
+            }
+            cell.numFmt = '#,##0'
+            cell.border = {
+              top: { style: 'thin', color: { argb: 'C0C0C0' } },
+              left: { style: 'thin', color: { argb: 'C0C0C0' } },
+              bottom: { style: 'thin', color: { argb: 'C0C0C0' } },
+              right: { style: 'thin', color: { argb: 'C0C0C0' } }
+            }
+          }
+        }
+
+        // 插入表頭
+        function setCellStyle(cell, value, bold = true, align = 'center', bgColor = 'f2f2f2') {
+          cell.value = value
+          cell.alignment = { horizontal: align }
+          cell.font = { bold: bold }
+          cell.fill = {
+            type: 'pattern',
+            pattern: 'solid',
+            fgColor: { argb: bgColor }
+          }
+        }
+        const getA = worksheet.getCell(`A${thelastrow}`)
+        const getB = worksheet.getCell(`B${thelastrow}`)
+        const getC = worksheet.getCell(`C${thelastrow}`)
+        const getE = worksheet.getCell(`E${thelastrow}`)
+        const getG = worksheet.getCell(`G${thelastrow}`)
+        setCellStyle(getA, header3[0])
+        setCellStyle(getB, header3[1])
+        setCellStyle(getC, header3[2])
+        setCellStyle(getE, header3[3])
+        setCellStyle(getG, header3[4])
+        //製卡資料
+        //製作日期
+        for (let x = 0; x <= data5.value.length - 1; x++) {
+          const tableStartRef = `A${thelastrow + 1 + x}`
+          const cell = worksheet.getCell(tableStartRef)
+          cell.value = data5.value[x].credit_amount
+          cell.alignment = { horizontal: 'center' }
+        }
+        //車牌號碼
+        for (let x = 0; x <= data5.value.length - 1; x++) {
+          const tableStartRef = `B${thelastrow + 1 + x}`
+          const cell = worksheet.getCell(tableStartRef)
+          cell.value = data5.value[x].bank_amount
+          cell.alignment = { horizontal: 'center' }
+        }
+        //車隊卡卡號
+        for (let x = 0; x <= data5.value.length - 1; x++) {
+          const tableStartRef = `C${thelastrow + 1 + x}`
+          const cell = worksheet.getCell(tableStartRef)
+          cell.value = data5.value[x].credit_card_data
+          cell.alignment = { horizontal: 'center' }
+        }
+        //製卡類別
+        for (let x = 0; x <= data5.value.length - 1; x++) {
+          const tableStartRef = `E${thelastrow + 1 + x}`
+          const cell = worksheet.getCell(tableStartRef)
+          cell.value = data5.value[x].bank
+          cell.alignment = { horizontal: 'center' }
+        }
+        //製卡費用
+        for (let x = 0; x <= data5.value.length - 1; x++) {
+          const tableStartRef = `G${thelastrow + 1 + x}`
+          const cell = worksheet.getCell(tableStartRef)
+          cell.value = Number(data5.value[x].amount)
+          cell.numFmt = '#,##0'
+        }
+
+        //合計
+        const totalAmount2 = data5.value.reduce((sum, item) => {
+          // 這裡會加總每個 item 的 amount
+          return sum + parseFloat(item.amount) // 確保 amount 是數字
+        }, 0) // 初始總和是 0
+        const lastrow2 = thelastrow + data5.value.length + 1
+        worksheet.mergeCells(`A${lastrow2}:F${lastrow2}`)
+        worksheet.mergeCells(`G${lastrow2}:H${lastrow2}`)
+        worksheet.getCell(`A${lastrow2}`).value = '合計'
+        worksheet.getCell(`G${lastrow2}`).value = Number(totalAmount2)
+        worksheet.getCell(`A${lastrow2}`).font = { bold: true }
+        worksheet.getCell(`G${lastrow2}`).font = { bold: true }
+        worksheet.getCell(`A${lastrow2}`).alignment = { horizontal: 'right' }
+        worksheet.getCell(`G${lastrow2}`).numFmt = '#,##0'
+        worksheet.getCell(`A${lastrow2}`).border = {
+          top: { style: 'thin' },
+          left: { style: 'thin' },
+          bottom: { style: 'thin' },
+          right: { style: 'thin' }
+        }
+        worksheet.getCell(`G${lastrow2}`).border = {
+          top: { style: 'thin' },
+          left: { style: 'thin' },
+          bottom: { style: 'thin' },
+          right: { style: 'thin' }
+        }
       }
       // 字型
       worksheet.eachRow((row) => {
