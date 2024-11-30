@@ -16,8 +16,8 @@ function formatNumber(value) {
 import apiClient from '@/api' // 載入 apiClient
 const isLoading = ref(false)
 const car_summary_data = ref([])
-const data4 = ref([])
-const data5 = ref([])
+const ProductData = ref([])
+const CardIssuanceFee = ref([])
 // 取得車輛加油概要資料
 async function fetchCarSummaryData() {
   isLoading.value = true
@@ -27,8 +27,8 @@ async function fetchCarSummaryData() {
       customerId: searchAccountStore.searchAccount.customerId,
       account_sortId: searchAccountStore.searchAccount.account_sortId
     })
-    data4.value = response.data.data.product
-    data5.value = response.data.data.cardIssuanceFee
+    ProductData.value = response.data.data.product
+    CardIssuanceFee.value = response.data.data.cardIssuanceFee
     car_summary_data.value = response.data.data.details.map((item) => ({
       year_month: bill_year.value - 1911 + '/' + bill_month.value,
       plate: item.license_plate,
@@ -100,6 +100,17 @@ async function exportToExcel() {
       rowstitle.forEach((row, index) => {
         worksheet.getCell(`B${1 + index}`).value = row[0] // 將每一行的第一列資料放入指定儲存格
       })
+       // 插入表頭
+       function setCellStyle(cell, value, bold = true, align = 'center', bgColor = 'f2f2f2') {
+          cell.value = value
+          cell.alignment = { horizontal: align }
+          cell.font = { bold: bold }
+          cell.fill = {
+            type: 'pattern',
+            pattern: 'solid',
+            fgColor: { argb: bgColor }
+          }
+        }
       if (transaction_mode == 1) {
         // 儲值
         const data = [
@@ -185,7 +196,7 @@ async function exportToExcel() {
       const header2 = ['品項', '公升數總計', '牌價總計', '售價總計']
       const lastRowNum = lastRowNumber + 1
       // 使用 String.fromCharCode() 將列編號轉成字母
-      const endRow2 = lastRowNum + data4.value.length + 1 // 結束行+標題
+      const endRow2 = lastRowNum + ProductData.value.length + 1 // 結束行+標題
 
       for (let row = lastRowNum + 1; row <= endRow2; row++) {
         for (let col = startCol.charCodeAt(0); col <= 71; col++) {
@@ -215,31 +226,31 @@ async function exportToExcel() {
         }
       }
       //品項
-      for (let x = 0; x <= data4.value.length - 1; x++) {
+      for (let x = 0; x <= ProductData.value.length - 1; x++) {
         const tableStartRef = `A${lastRowNum + 2 + x}`
         const cell = worksheet.getCell(tableStartRef)
-        cell.value = data4.value[x].product_name
+        cell.value = ProductData.value[x].product_name
         cell.alignment = { horizontal: 'center' }
       }
       //公升數
-      for (let x = 0; x <= data4.value.length - 1; x++) {
+      for (let x = 0; x <= ProductData.value.length - 1; x++) {
         const tableStartRef = `C${lastRowNum + 2 + x}`
         const cell = worksheet.getCell(tableStartRef)
-        cell.value = parseFloat(data4.value[x].fuel_volume)
+        cell.value = parseFloat(ProductData.value[x].fuel_volume)
         cell.alignment = { horizontal: 'right' }
       }
       //牌價
-      for (let x = 0; x <= data4.value.length - 1; x++) {
+      for (let x = 0; x <= ProductData.value.length - 1; x++) {
         const tableStartRef = `E${lastRowNum + 2 + x}`
-        worksheet.getCell(tableStartRef).value = parseFloat(data4.value[x].reference_amount)
+        worksheet.getCell(tableStartRef).value = parseFloat(ProductData.value[x].reference_amount)
       }
       //售價
-      for (let x = 0; x <= data4.value.length - 1; x++) {
+      for (let x = 0; x <= ProductData.value.length - 1; x++) {
         const tableStartRef = `G${lastRowNum + 2 + x}`
-        worksheet.getCell(tableStartRef).value = parseFloat(data4.value[x].amount)
+        worksheet.getCell(tableStartRef).value = parseFloat(ProductData.value[x].amount)
       }
       // 合計
-      const totalAmount = data4.value.reduce((sum, item) => {
+      const totalAmount = ProductData.value.reduce((sum, item) => {
         // 這裡會加總每個 item 的 amount
         return sum + parseFloat(item.amount) // 確保 amount 是數字
       }, 0) // 初始總和是 0
@@ -265,12 +276,12 @@ async function exportToExcel() {
         right: { style: 'thin', color: { argb: 'C0C0C0' } }
       }
       //製卡資料
-      if (data5.value.length > 0) {
+      if (CardIssuanceFee.value.length > 0) {
         const thelastrow = lastrow + 2
         const header3 = ['製作日期', '車牌號碼', '車隊卡卡號', '製卡類別', '製卡費用']
         // 使用 String.fromCharCode() 將列編號轉成字母
 
-        const endRow3 = thelastrow + data5.value.length // 結束行+標題
+        const endRow3 = thelastrow + CardIssuanceFee.value.length // 結束行+標題
 
         for (let row = thelastrow; row <= endRow3; row++) {
           for (let col = startCol.charCodeAt(0); col <= 71; col++) {
@@ -292,17 +303,7 @@ async function exportToExcel() {
           }
         }
 
-        // 插入表頭
-        function setCellStyle(cell, value, bold = true, align = 'center', bgColor = 'f2f2f2') {
-          cell.value = value
-          cell.alignment = { horizontal: align }
-          cell.font = { bold: bold }
-          cell.fill = {
-            type: 'pattern',
-            pattern: 'solid',
-            fgColor: { argb: bgColor }
-          }
-        }
+       
         const getA = worksheet.getCell(`A${thelastrow}`)
         const getB = worksheet.getCell(`B${thelastrow}`)
         const getC = worksheet.getCell(`C${thelastrow}`)
@@ -315,47 +316,47 @@ async function exportToExcel() {
         setCellStyle(getG, header3[4])
         //製卡資料
         //製作日期
-        for (let x = 0; x <= data5.value.length - 1; x++) {
+        for (let x = 0; x <= CardIssuanceFee.value.length - 1; x++) {
           const tableStartRef = `A${thelastrow + 1 + x}`
           const cell = worksheet.getCell(tableStartRef)
-          cell.value = data5.value[x].credit_amount
+          cell.value = CardIssuanceFee.value[x].credit_amount
           cell.alignment = { horizontal: 'center' }
         }
         //車牌號碼
-        for (let x = 0; x <= data5.value.length - 1; x++) {
+        for (let x = 0; x <= CardIssuanceFee.value.length - 1; x++) {
           const tableStartRef = `B${thelastrow + 1 + x}`
           const cell = worksheet.getCell(tableStartRef)
-          cell.value = data5.value[x].bank_amount
+          cell.value = CardIssuanceFee.value[x].bank_amount
           cell.alignment = { horizontal: 'center' }
         }
         //車隊卡卡號
-        for (let x = 0; x <= data5.value.length - 1; x++) {
+        for (let x = 0; x <= CardIssuanceFee.value.length - 1; x++) {
           const tableStartRef = `C${thelastrow + 1 + x}`
           const cell = worksheet.getCell(tableStartRef)
-          cell.value = data5.value[x].credit_card_data
+          cell.value = CardIssuanceFee.value[x].credit_card_data
           cell.alignment = { horizontal: 'center' }
         }
         //製卡類別
-        for (let x = 0; x <= data5.value.length - 1; x++) {
+        for (let x = 0; x <= CardIssuanceFee.value.length - 1; x++) {
           const tableStartRef = `E${thelastrow + 1 + x}`
           const cell = worksheet.getCell(tableStartRef)
-          cell.value = data5.value[x].bank
+          cell.value = CardIssuanceFee.value[x].bank
           cell.alignment = { horizontal: 'center' }
         }
         //製卡費用
-        for (let x = 0; x <= data5.value.length - 1; x++) {
+        for (let x = 0; x <= CardIssuanceFee.value.length - 1; x++) {
           const tableStartRef = `G${thelastrow + 1 + x}`
           const cell = worksheet.getCell(tableStartRef)
-          cell.value = Number(data5.value[x].amount)
+          cell.value = Number(CardIssuanceFee.value[x].amount)
           cell.numFmt = '#,##0'
         }
 
         //合計
-        const totalAmount2 = data5.value.reduce((sum, item) => {
+        const totalAmount2 = CardIssuanceFee.value.reduce((sum, item) => {
           // 這裡會加總每個 item 的 amount
           return sum + parseFloat(item.amount) // 確保 amount 是數字
         }, 0) // 初始總和是 0
-        const lastrow2 = thelastrow + data5.value.length + 1
+        const lastrow2 = thelastrow + CardIssuanceFee.value.length + 1
         worksheet.mergeCells(`A${lastrow2}:F${lastrow2}`)
         worksheet.mergeCells(`G${lastrow2}:H${lastrow2}`)
         worksheet.getCell(`A${lastrow2}`).value = '合計'
