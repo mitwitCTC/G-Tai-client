@@ -129,9 +129,16 @@ function resetUpdatePasswordResult() {
 }
 
 const ruleFormRef = ref(null)
+const isUpdating = ref(false)
 async function submitForm() {
+  if (isUpdating.value) return
+  updatePasswordDialogVisible.value = true
+  isUpdating.value = true
   await ruleFormRef.value.validate(async (valid) => {
-    if (!valid) return
+    if (!valid) {
+      isUpdating.value = false // 如果驗證失敗，解除禁用
+      return
+    }
 
     try {
       const response = await apiClient.post('/main/updatePassword', {
@@ -152,8 +159,17 @@ async function submitForm() {
     } catch (error) {
       setUpdatePasswordResult(error.message)
       console.error(error)
+    } finally {
+      // 完成後恢復更新狀態
+      setTimeout(() => {
+        isUpdating.value = false
+      }, 1000)
     }
   })
+}
+function handleEnterKey(event) {
+  event.preventDefault()
+  submitForm()
 }
 </script>
 
@@ -214,6 +230,7 @@ async function submitForm() {
             type="password"
             placeholder="請輸入原密碼"
             show-password
+            @keyup.enter="handleEnterKey"
           />
         </el-form-item>
         <el-form-item label="新密碼" prop="newfront_pwd">
@@ -222,6 +239,7 @@ async function submitForm() {
             type="password"
             placeholder="請輸入新密碼"
             show-password
+            @keyup.enter="handleEnterKey"
           />
         </el-form-item>
         <el-form-item label="新密碼確認" prop="newfront_pwd_check">
@@ -230,13 +248,16 @@ async function submitForm() {
             type="password"
             placeholder="請再次輸入新密碼確認"
             show-password
+            @keyup.enter="handleEnterKey"
           />
         </el-form-item>
         <div class="d-flex justify-content-end gap-3">
           <button class="btn btn-outline-secondary" @click="updatePasswordDialogVisible = false">
             取消
           </button>
-          <button class="btn btn-warning text-white" @click="submitForm">確認修改</button>
+          <button class="btn btn-warning text-white" @click="submitForm" :disabled="isUpdating">
+            確認修改
+          </button>
         </div>
       </el-form>
     </el-dialog>
