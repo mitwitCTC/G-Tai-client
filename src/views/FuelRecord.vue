@@ -226,7 +226,7 @@ const filteredFuelData = computed(() => {
   return fuel_record.value.filter((item) => item.plate.includes(trimmedPlate))
 })
 
-// 匯出
+// 匯出 
 function exportExcel() {
   let xlsxParam = { raw: true }
   let wb = XLSX.utils.table_to_book(document.querySelector('#fuel_data'), xlsxParam)

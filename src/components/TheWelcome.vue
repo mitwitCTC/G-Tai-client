@@ -25,7 +25,8 @@ const navItems = ref([
   {
     name: '對帳及發票查詢',
     path: '/reconciliation-invoice',
-    icon_path: 'bi bi-card-checklist'
+    icon_path: 'bi bi-card-checklist',
+    
   }
 ])
 const companyStore = useCompanyStore()
@@ -166,7 +167,9 @@ async function submitForm() {
     </div>
     <ul class="nav-list mt-5">
       <li class="item" v-for="(item, index) in navItems" :key="index">
-        <router-link :to="item.path">
+        <router-link :to="{
+        path: item.path
+      }">
           <div class="nav-body">
             <i :class="item.icon_path" class="nav-icon"></i>
             <p class="nav-text">{{ item.name }}</p>
