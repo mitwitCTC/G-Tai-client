@@ -84,11 +84,11 @@ async function exportToExcel() {
         row.year_month,
         row.plate,
         row.product_name,
-        row.quantity,
-        row.list_price_subtotal,
-        row.subtotal,
-        row.mileage,
-        row.fuel_consumption
+        Number(row.quantity),
+        Number(row.list_price_subtotal),
+        Number(row.subtotal),
+        Number(row.mileage),
+        Number(row.fuel_consumption)
       ])
       //公司資訊
       let rowstitle = [
@@ -100,17 +100,17 @@ async function exportToExcel() {
       rowstitle.forEach((row, index) => {
         worksheet.getCell(`B${1 + index}`).value = row[0] // 將每一行的第一列資料放入指定儲存格
       })
-       // 插入表頭
-       function setCellStyle(cell, value, bold = true, align = 'center', bgColor = 'f2f2f2') {
-          cell.value = value
-          cell.alignment = { horizontal: align }
-          cell.font = { bold: bold }
-          cell.fill = {
-            type: 'pattern',
-            pattern: 'solid',
-            fgColor: { argb: bgColor }
-          }
+      // 插入表頭
+      function setCellStyle(cell, value, bold = true, align = 'center', bgColor = 'f2f2f2') {
+        cell.value = value
+        cell.alignment = { horizontal: align }
+        cell.font = { bold: bold }
+        cell.fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: bgColor }
         }
+      }
       if (transaction_mode == 1) {
         // 儲值
         const data = [
@@ -143,16 +143,11 @@ async function exportToExcel() {
           return null
         })
         const filteredItems = items.filter((item) => item && item.config_value != 0)
-        
+
         // 分別取出 config 和 config_value
         const configs = filteredItems.map((item) => item.config)
         const config_values = filteredItems.map((item) => item.config_value)
-        const data = [
-          `${configs}`,
-          `${config_values}`,
-          `${payment_deadline}`,
-          `${total}`
-        ]
+        const data = [`${configs}`, `${config_values}`, `${payment_deadline}`, `${total}`]
         worksheet.getCell('A7').value = data[0]
         worksheet.getCell('C7').value = data[1]
         worksheet.getCell('E7').value = data[2]
@@ -177,7 +172,13 @@ async function exportToExcel() {
       for (let row = startRow; row <= endRow; row++) {
         for (let col = startCol.charCodeAt(0); col <= endCol.charCodeAt(0); col++) {
           const cell = worksheet.getCell(`${String.fromCharCode(col)}${row}`)
-          cell.numFmt = '#,##0'
+          if (col == 68) {
+            cell.numFmt = '#,##0.000'
+          } else if (col == 72) {
+            cell.numFmt = '#,##0.00'
+          } else {
+            cell.numFmt = '#,##0'
+          }
         }
       }
       // 居中對齊
@@ -303,7 +304,6 @@ async function exportToExcel() {
           }
         }
 
-       
         const getA = worksheet.getCell(`A${thelastrow}`)
         const getB = worksheet.getCell(`B${thelastrow}`)
         const getC = worksheet.getCell(`C${thelastrow}`)

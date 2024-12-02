@@ -32,12 +32,7 @@ async function exportToExcel2() {
       const invoice_name = searchAccountStore.searchAccount.invoice_name
       const acc_name = searchAccountStore.searchAccount.acc_name
       //公司資訊
-      let rowstitle = [
-        [date],
-        [`${customerName}`],
-        [`${invoice_name}`],
-        [`${acc_name}`]
-      ]
+      let rowstitle = [[date], [`${customerName}`], [`${invoice_name}`], [`${acc_name}`]]
       rowstitle.forEach((row, index) => {
         worksheet.getCell(`B${1 + index}`).value = row[0] // 將每一行的第一列資料放入指定儲存格
       })
@@ -76,6 +71,15 @@ async function exportToExcel2() {
             const cellAddress = `${String.fromCharCode(65 + colIndex)}${startRow + rowIndex}`
             const cell = worksheet.getCell(cellAddress)
             cell.value = cellData // 將數據插入單元格
+            if (colIndex == 4) {
+              cell.numFmt = '#,##0.0'
+            } else if (colIndex == 5) {
+              cell.numFmt = '#,##0.00'
+            } else if (colIndex == 6) {
+              cell.numFmt = '#,##0.0'
+            } else {
+              cell.numFmt = '#,##0'
+            }
           })
         }
       })
