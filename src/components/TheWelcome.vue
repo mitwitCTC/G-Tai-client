@@ -25,8 +25,7 @@ const navItems = ref([
   {
     name: '對帳及發票查詢',
     path: '/reconciliation-invoice',
-    icon_path: 'bi bi-card-checklist',
-    
+    icon_path: 'bi bi-card-checklist'
   }
 ])
 const companyStore = useCompanyStore()
@@ -72,15 +71,22 @@ function logout() {
 }
 
 // 修改密碼
-const updatePassworForm = ref({
+const updatePasswordForm = ref({
   cus_code: '',
   front_pwd: '',
   newfront_pwd: '',
   newfront_pwd_check: ''
 })
-onMounted(() => {
-  updatePassworForm.value.cus_code = company_info.value.customerId
-})
+// 使用 watch 來監控 company_info 的變化，並在有值時更新 updatePasswordForm.cus_code
+watch(
+  () => company_info.value.customerId,
+  (newCustomerId) => {
+    if (newCustomerId) {
+      updatePasswordForm.value.cus_code = newCustomerId
+    }
+  },
+  { immediate: true }
+)
 const updatePasswordDialogVisible = ref(false)
 // 表單驗證規則
 const rules = reactive({
@@ -97,14 +103,14 @@ const rules = reactive({
 })
 // 密碼確認的規則
 function validateNewPassword(rule, value, callback) {
-  if (value !== updatePassworForm.value.newfront_pwd) {
+  if (value !== updatePasswordForm.value.newfront_pwd) {
     callback(new Error('新密碼與確認密碼不一致'))
   } else {
     callback()
   }
 }
 function validatePasswordNotSameAsOld(rule, value, callback) {
-  if (value == updatePassworForm.value.front_pwd) {
+  if (value == updatePasswordForm.value.front_pwd) {
     callback(new Error('新密碼不得與原密碼相同'))
   } else {
     callback()
@@ -113,9 +119,7 @@ function validatePasswordNotSameAsOld(rule, value, callback) {
 const updatePassword_result = ref('')
 function setUpdatePasswordResult(message) {
   updatePassword_result.value = message
-  setTimeout(() => {
-    updatePassword_result.value = ''
-  }, 3000)
+  resetUpdatePasswordResult()
 }
 
 function resetUpdatePasswordResult() {
@@ -125,34 +129,47 @@ function resetUpdatePasswordResult() {
 }
 
 const ruleFormRef = ref(null)
+const isUpdating = ref(false)
 async function submitForm() {
-  ruleFormRef.value.validate(async (valid) => {
-    if (valid) {
+  if (isUpdating.value) return
+  updatePasswordDialogVisible.value = true
+  isUpdating.value = true
+  await ruleFormRef.value.validate(async (valid) => {
+    if (!valid) {
+      isUpdating.value = false // 如果驗證失敗，解除禁用
+      return
+    }
+
+    try {
       const response = await apiClient.post('/main/updatePassword', {
-        cus_code: updatePassworForm.value.cus_code,
-        front_pwd: updatePassworForm.value.front_pwd,
-        newfront_pwd: updatePassworForm.value.newfront_pwd
+        cus_code: updatePasswordForm.value.cus_code,
+        front_pwd: updatePasswordForm.value.front_pwd,
+        newfront_pwd: updatePasswordForm.value.newfront_pwd
       })
-      try {
-        if (response.data.returnCode == 0) {
-          setUpdatePasswordResult(response.data.message)
-          setTimeout(() => {
-            console.clear()
-            logout()
-          }, 2000)
-        } else if (response.data.returnCode == -1) {
-          setUpdatePasswordResult(response.data.message)
-        } else {
-          console.error(response.data)
-        }
-      } catch (error) {
-        console.error(error)
+
+      if (response.data.returnCode === 0) {
+        setUpdatePasswordResult(response.data.message)
+        setTimeout(() => {
+          console.clear()
+          logout()
+        }, 1000)
+      } else {
+        setUpdatePasswordResult(response.data.message)
       }
-    } else {
-      return false
+    } catch (error) {
+      setUpdatePasswordResult(error.message)
+      console.error(error)
+    } finally {
+      // 完成後恢復更新狀態
+      setTimeout(() => {
+        isUpdating.value = false
+      }, 1000)
     }
   })
-  resetUpdatePasswordResult()
+}
+function handleEnterKey(event) {
+  event.preventDefault()
+  submitForm()
 }
 </script>
 
@@ -167,9 +184,7 @@ async function submitForm() {
     </div>
     <ul class="nav-list mt-5">
       <li class="item" v-for="(item, index) in navItems" :key="index">
-        <router-link :to="{
-        path: item.path
-      }">
+        <router-link :to="{ path: item.path }">
           <div class="nav-body">
             <i :class="item.icon_path" class="nav-icon"></i>
             <p class="nav-text">{{ item.name }}</p>
@@ -191,54 +206,56 @@ async function submitForm() {
         </div>
       </li>
     </ul>
-    <el-dialog v-model="updatePasswordDialogVisible" title="變更密碼" width="500" align-center>
+    <el-dialog v-model="updatePasswordDialogVisible" title="變更密碼" width="500">
       <el-alert
         v-if="updatePassword_result"
         :title="updatePassword_result"
-        :type="updatePassword_result == '修改密碼成功' ? 'success' : 'error'"
+        :type="updatePassword_result === '修改密碼成功' ? 'success' : 'error'"
         show-icon
       />
       <el-form
         ref="ruleFormRef"
-        :model="updatePassworForm"
+        :model="updatePasswordForm"
         :rules="rules"
         label-width="auto"
         status-icon
-        @keydown.enter.prevent
+        @submit.prevent="submitForm"
       >
         <el-form-item label="客戶代號" prop="cus_code">
-          <el-input disabled v-model="updatePassworForm.cus_code" type="text" />
+          <el-input disabled v-model="updatePasswordForm.cus_code" type="text" />
         </el-form-item>
         <el-form-item label="原密碼" prop="front_pwd">
           <el-input
-            v-model="updatePassworForm.front_pwd"
+            v-model="updatePasswordForm.front_pwd"
             type="password"
             placeholder="請輸入原密碼"
             show-password
+            @keyup.enter="handleEnterKey"
           />
         </el-form-item>
         <el-form-item label="新密碼" prop="newfront_pwd">
           <el-input
-            v-model="updatePassworForm.newfront_pwd"
+            v-model="updatePasswordForm.newfront_pwd"
             type="password"
             placeholder="請輸入新密碼"
             show-password
+            @keyup.enter="handleEnterKey"
           />
         </el-form-item>
         <el-form-item label="新密碼確認" prop="newfront_pwd_check">
           <el-input
-            v-model="updatePassworForm.newfront_pwd_check"
+            v-model="updatePasswordForm.newfront_pwd_check"
             type="password"
             placeholder="請再次輸入新密碼確認"
             show-password
-            @keyup.enter="submitForm(updatePassworForm)"
+            @keyup.enter="handleEnterKey"
           />
         </el-form-item>
         <div class="d-flex justify-content-end gap-3">
           <button class="btn btn-outline-secondary" @click="updatePasswordDialogVisible = false">
             取消
           </button>
-          <button class="btn btn-warning text-white" @click="submitForm(updatePassworForm)">
+          <button class="btn btn-warning text-white" @click="submitForm" :disabled="isUpdating">
             確認修改
           </button>
         </div>
