@@ -92,7 +92,7 @@ async function exportToExcel() {
       ])
       //公司資訊
       let rowstitle = [
-        [`期別：${date}`],
+        [`帳單期別：${date}`],
         [`公司名稱：${customerName}`],
         [`發票抬頭：${invoice_name}`],
         [`帳單組別：${acc_name}`]
