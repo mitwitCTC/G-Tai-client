@@ -28,6 +28,14 @@ async function fetchCarSummaryData() {
       account_sortId: searchAccountStore.searchAccount.account_sortId
     })
     ProductData.value = response.data.data.product
+    const sortOrder = ['超級柴油', '無鉛汽油', '尿素溶液', '諾瓦尿素']
+
+    // 排序邏輯
+    ProductData.value.sort((a, b) => {
+      const indexA = sortOrder.indexOf(a.product_name)
+      const indexB = sortOrder.indexOf(b.product_name)
+      return indexA - indexB
+    })
     CardIssuanceFee.value = response.data.data.cardIssuanceFee
     car_summary_data.value = response.data.data.details.map((item) => ({
       year_month: bill_year.value - 1911 + '/' + bill_month.value,
@@ -173,7 +181,7 @@ async function exportToExcel() {
         for (let col = startCol.charCodeAt(0); col <= endCol.charCodeAt(0); col++) {
           const cell = worksheet.getCell(`${String.fromCharCode(col)}${row}`)
           if (col == 68) {
-            cell.numFmt = '#,##0.000'
+            cell.numFmt = '#,##0.00'
           } else if (col == 72) {
             cell.numFmt = '#,##0.00'
           } else {
@@ -238,6 +246,7 @@ async function exportToExcel() {
         const tableStartRef = `C${lastRowNum + 2 + x}`
         const cell = worksheet.getCell(tableStartRef)
         cell.value = parseFloat(ProductData.value[x].fuel_volume)
+        cell.numFmt = '#,##0.00'
         cell.alignment = { horizontal: 'right' }
       }
       //牌價
