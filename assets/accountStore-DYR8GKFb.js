@@ -1,0 +1,1 @@
+import{y as s,a as r,q as n}from"./index-CVTk_Qop.js";const u=s("searchAccount",()=>{const c=JSON.parse(sessionStorage.getItem("searchAccount_info"))||{},e=r(c);function o(t){e.value=t}return n(e,t=>{sessionStorage.setItem("searchAccount_info",JSON.stringify(t))},{deep:!0}),{searchAccount:e,setSearchAccount:o}});export{u};
