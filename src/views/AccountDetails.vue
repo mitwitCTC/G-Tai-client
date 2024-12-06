@@ -31,6 +31,7 @@ async function exportToExcel2() {
       const customerName = searchAccountStore.searchAccount.customerName
       const invoice_name = searchAccountStore.searchAccount.invoice_name
       const acc_name = searchAccountStore.searchAccount.acc_name
+      const customerId = searchAccountStore.searchAccount.customerId
       //公司資訊
       let rowstitle = [[date], [`${customerName}`], [`${invoice_name}`], [`${acc_name}`]]
       rowstitle.forEach((row, index) => {
@@ -111,7 +112,7 @@ async function exportToExcel2() {
         }
       })
       // 保存到新的文件
-      const newFileName = `${bill_year.value}-${bill_month.value}對帳單明細.xlsx`
+      const newFileName = `${bill_year.value}-${bill_month.value}明細_${customerId}_${acc_name}.xlsx`
       const buffer = await workbook.xlsx.writeBuffer()
 
       // 生成下載鏈接並觸發下載

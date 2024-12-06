@@ -88,6 +88,7 @@ async function exportToExcel() {
       const current_month_balance = searchAccountStore.searchAccount.current_month_balance //本期餘額
       const payment_deadline = searchAccountStore.searchAccount.payment_deadline //月結繳款期限
       const config_notes = searchAccountStore.searchAccount.config_notes //擔保品
+      const customerId = searchAccountStore.searchAccount.customerId
       const summary_data = car_summary_data.value.map((row) => [
         row.year_month,
         row.plate,
@@ -427,7 +428,7 @@ async function exportToExcel() {
         }
       }
       // 保存到新的文件
-      const newFileName = `${bill_year.value}-${bill_month.value}對帳單總表.xlsx`
+      const newFileName = `${bill_year.value}-${bill_month.value}總表_${customerId}_${acc_name}.xlsx`
       const buffer = await workbook.xlsx.writeBuffer()
 
       // 生成下載鏈接並觸發下載
