@@ -143,6 +143,7 @@ async function searchAccountGroup() {
   await getInvoiceList()
   try {
     const response = await apiClient.post('/main/accountGroup', {
+      date: search_month.value,
       customerId: companyStore.company_info.customerId
     })
     reconciliationAndInvoice_list.value = response.data.data
@@ -205,6 +206,59 @@ const goToAccountDetails = (account_sortId, acc_name, invoice_name) => {
   searchAccountStore.setSearchAccount(searchAccount_info)
   router.push('/accountDetails')
 }
+// loading 狀態
+const svg = `
+        <path class="path" d="
+          M 30 15
+          L 28 17
+          M 25.61 25.61
+          A 15 15, 0, 0, 1, 15 30
+          A 15 15, 0, 1, 1, 27.99 7.5
+          L 15 15
+        " style="stroke-width: 4px; fill: rgba(0, 0, 0, 0)"/>
+      `
+
+const thisMonth = ref('')
+thisMonth.value = `${currentYear}-${current_month}` // 實際本月年-月
+const isDownloadingInvoice = ref(false)
+async function downloadInvoice(account_sortId, acc_name) {
+  isDownloadingInvoice.value = true
+  try {
+    const response = await apiClient.post(
+      '/main/downloadInvoice',
+      {
+        date: search_month.value,
+        customerId: companyStore.company_info.customerId,
+        account_sortId: account_sortId
+      },
+      { responseType: 'blob' } // 確保回傳型態是二進位
+    )
+    // 檢查回傳的資料
+    if (!response.data || !(response.data instanceof Blob)) {
+      throw new Error('回傳資料非有效 PDF 格式')
+    }
+    // 將 Blob 轉換為 URL
+    const blob = new Blob([response.data], { type: 'application/pdf' })
+    const url = window.URL.createObjectURL(blob)
+
+    // 動態建立 <a> 標籤並觸發下載
+    const link = document.createElement('a')
+    link.href = url
+
+    link.download = `${search_month.value}發票_${companyStore.company_info.customerId}_${acc_name}.pdf` // 自訂檔名
+    document.body.appendChild(link)
+    link.click()
+
+    // 清理資源
+    link.remove()
+    window.URL.revokeObjectURL(url)
+  } catch (error) {
+    alert('下載失敗')
+    console.error(error)
+  } finally {
+    isDownloadingInvoice.value = false
+  }
+}
 
 function logout() {
   sessionStorage.clear()
@@ -221,6 +275,7 @@ function logout() {
       <button class="btn btn-yellow" @click="logout">登出</button>
     </div>
     <p class="fw-bold">對帳單&發票查詢</p>
+
     <el-table class="mb-3" border :data="[subtotal_data]" v-loading="isLoadingSubtotal_data">
       <el-table-column
         align="center"
@@ -256,7 +311,17 @@ function logout() {
       @change="searchAccountGroup"
     />
     <p class="mt-4">{{ currentMonth }}月份對帳單&發票檔案列表</p>
-    <el-table :data="reconciliationAndInvoice_list">
+    <div
+      element-loading-text="下載發票中..."
+      :element-loading-spinner="svg"
+      v-loading.fullscreen="isDownloadingInvoice"
+      element-loading-svg-view-box="-10, -10, 50, 50"
+      element-loading-background="rgba(122, 122, 122, 0.8)"
+    ></div>
+    <el-table
+      :data="reconciliationAndInvoice_list"
+      v-loading="isLoadingReconciliationAndInvoice_list"
+    >
       <el-table-column
         prop="acc_name"
         label="帳單名稱"
@@ -286,13 +351,17 @@ function logout() {
         </template>
       </el-table-column>
 
-      <el-table-column prop="invoice.name" label="發票" align="center" min-width="120">
-        <template #default="{ row }">
-          <a :href="row.invoice?.downloadUrl">{{ row.invoice?.name }}</a>
+      <el-table-column prop="發票" label="發票" align="center" min-width="120">
+        <template #default="{ row }" v-if="thisMonth != search_month">
+          <a class="pointer" @click="downloadInvoice(row.account_sortId, row.acc_name)"> 發票 </a>
         </template>
       </el-table-column>
     </el-table>
   </div>
 </template>
 
-<style scoped></style>
+<style scoped>
+.pointer {
+  cursor: pointer;
+}
+</style>
