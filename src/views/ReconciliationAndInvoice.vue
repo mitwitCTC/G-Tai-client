@@ -137,10 +137,11 @@ function formatNumber(value) {
   return typeof value === 'number' ? value.toLocaleString('en-US') : value
 }
 
+const isLoadingReconciliationAndInvoice_list = ref(false)
 const reconciliationAndInvoice_list = ref([])
 async function searchAccountGroup() {
+  isLoadingReconciliationAndInvoice_list.value = true
   fetchSubtotalData()
-  await getInvoiceList()
   try {
     const response = await apiClient.post('/main/accountGroup', {
       date: search_month.value,
@@ -149,22 +150,9 @@ async function searchAccountGroup() {
     reconciliationAndInvoice_list.value = response.data.data
   } catch (error) {
     console.error(error)
+  } finally {
+    isLoadingReconciliationAndInvoice_list.value = false
   }
-
-  // 遍歷 reconciliationAndInvoice_list 和 invoice_list，進行 invoice_name 的比對並合併 invoice 資料
-  reconciliationAndInvoice_list.value.forEach((item) => {
-    const matchedInvoice = invoice_list.value.find(
-      (invoiceItem) => invoiceItem.invoice_name === item.invoice_name
-    )
-    if (matchedInvoice) {
-      item.invoice = matchedInvoice.invoice // 合併 invoice 資料
-    }
-  })
-}
-
-const invoice_list = ref([])
-async function getInvoiceList() {
-  invoice_list.value = []
 }
 
 watch(search_month, () => {
