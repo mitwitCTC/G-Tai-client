@@ -427,6 +427,12 @@ async function exportToExcel() {
           right: { style: 'thin', color: { argb: 'C0C0C0' } } // 添加銀色細邊框
         }
       }
+      //調整欄寬
+      const columnsToAdjust = ['A', 'B', 'C', 'D', 'E', 'F', 'H'] // 需要調整的欄
+      columnsToAdjust.forEach((col) => {
+        const columnIndex = worksheet.getColumn(col).number // 取得欄位編號
+        worksheet.getColumn(columnIndex).width = 16 // 設定欄寬，數字可調整
+      })
       // 保存到新的文件
       const newFileName = `${bill_year.value}-${bill_month.value}總表_${customerId}_${acc_name}.xlsx`
       const buffer = await workbook.xlsx.writeBuffer()
