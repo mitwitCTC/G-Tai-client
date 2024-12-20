@@ -248,7 +248,7 @@ async function exportToExcel2() {
         worksheet.getColumn(columnIndex).width = 14 // 設定欄寬，數字可調整
       })
       worksheet.getColumn(2).width = 22 // 設定B欄寬
-      worksheet.getColumn(3).width = 22 // 設定C欄寬
+      worksheet.getColumn(3).width = 29 // 設定C欄寬
       // 保存到新的文件
       const newFileName = `${bill_year.value}-${bill_month.value}明細_${customerId}_${acc_name}.xlsx`
       const buffer = await workbook.xlsx.writeBuffer()
