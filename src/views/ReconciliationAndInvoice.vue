@@ -225,27 +225,27 @@ async function downloadInvoice(account_sortId, acc_name) {
     if (!response.data || !(response.data instanceof Blob)) {
       throw new Error('回傳資料非有效 PDF 格式')
     }
-    // 將 Blob 轉換為 URL
-    const blob = new Blob([response.data], { type: 'application/pdf' })
-    const url = window.URL.createObjectURL(blob)
-
-    // 動態建立 <a> 標籤並觸發下載
-    const link = document.createElement('a')
-    link.href = url
-
-    link.download = `${search_month.value}發票_${companyStore.company_info.customerId}_${acc_name}.pdf` // 自訂檔名
-    document.body.appendChild(link)
-    link.click()
-
-    // 清理資源
-    link.remove()
-    window.URL.revokeObjectURL(url)
+    const fileName = `${search_month.value}發票_${companyStore.company_info.customerId}_${acc_name}.pdf`
+    downloadFile(new Blob([response.data]), fileName)
   } catch (error) {
     alert('下載失敗')
     console.error(error)
   } finally {
     isDownloadingInvoice.value = false
   }
+}
+const downloadFile = (blob, fileName) => {
+  // 動態建立 <a> 標籤
+  const link = document.createElement('a')
+  // 設置下載鏈接 blobURL
+  link.href = URL.createObjectURL(blob)
+  link.download = fileName
+  //添加到 DOM 並觸發點擊
+  document.body.append(link)
+  link.click()
+  link.remove()
+  // 釋放資源
+  setTimeout(() => URL.revokeObjectURL(link.href), 7000)
 }
 
 function logout() {
