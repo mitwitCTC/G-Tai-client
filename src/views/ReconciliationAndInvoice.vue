@@ -45,25 +45,11 @@ const subtotal_data_table_labels = computed(() => {
       { label: '', prop: 'minus_sign' },
       { label: `${currentMonth.value}月份加油小計`, prop: 'current_month_fuel_total' }
     ]
-    // 月結方式的資訊
-  } else if (transaction_mode.value == 2) {
-    // 根據 subtotal_data 的資料生成表格標籤
-    return [
-      // 從 subtotal_data 中生成標籤，但排除 payment_deadline
-      ...Object.keys(subtotal_data.value)
-        .filter((key) => key !== 'payment_deadline')
-        .map((key) => ({
-          label: key,
-          prop: key
-        })),
-      // 單獨新增款項繳費期限 label
-      { label: '款項繳費期限', prop: 'payment_deadline' }
-    ]
   }
   return []
 })
 
-const collateral_data = ref('')
+const collateral_data = ref([])
 // 取得匯款加油小計
 async function fetchSubtotalData() {
   updateCurrentMonth()
@@ -95,11 +81,30 @@ async function fetchSubtotalData() {
       const response = await apiClient.post('/main/collateralInfo', {
         cus_code: companyStore.company_info.customerId
       })
-      collateral_data.value = response.data.data[0].config_notes
-      parseCollateralData(collateral_data.value)
-      const remittance_date = response.data.data[0].remittance_date
-      subtotal_data.value.payment_deadline = `每月${remittance_date}日前`
-      config_notes = response.data.data[0].config_notes
+      const rawData = response.data.data[0]
+      const configNotes = rawData.config_notes || ''
+      const remittanceDate = rawData.remittance_date
+      console.log(configNotes)
+
+      const parsedData = parseCollateralData(configNotes)
+      const paymentDeadline = remittanceDate ? `每月${remittanceDate}日前` : ''
+
+      // 如果 parsedData 為空，僅添加款項繳費期限
+      if (parsedData.length === 0) {
+        collateral_data.value.push({
+          collateralType: '',
+          collateralAmount: '',
+          paymentDeadline
+        })
+      } else {
+        parsedData.forEach((item) => {
+          collateral_data.value.push({
+            collateralType: item.type,
+            collateralAmount: item.amount,
+            paymentDeadline
+          })
+        })
+      }
     } catch (error) {
       console.error(error)
     } finally {
@@ -109,17 +114,21 @@ async function fetchSubtotalData() {
 }
 // 調整擔保品資料格式
 function parseCollateralData(data) {
-  const parsedData = {}
-  data.split(', ').forEach((item) => {
-    const [collateral_item, valueWithNote] = item.split(':')
-    const valueMatch = valueWithNote.match(/^(\d+)(?:\s*[([\s]?([^()[\]]+)[)\]]?)?$/)
-
-    parsedData[collateral_item.trim()] = valueMatch
-      ? `${formatNumber(Number(valueMatch[1]))} ${valueMatch[2] ? `(${valueMatch[2]})` : ''}`
-      : valueWithNote.trim()
+  const result = []
+  data.split(', ').forEach((entry) => {
+    const [type, value] = entry.split(':').map((item) => item.trim())
+    const numericValueMatch = value.match(/^\d+/) // 提取前面的數字部分
+    if (numericValueMatch) {
+      const numericValue = parseInt(numericValueMatch[0], 10)
+      if (numericValue > 0) {
+        result.push({
+          type,
+          amount: formatNumber(numericValue)
+        })
+      }
+    }
   })
-
-  subtotal_data.value = parsedData
+  return result
 }
 onMounted(() => {
   fetchSubtotalData()
@@ -141,7 +150,6 @@ const isLoadingReconciliationAndInvoice_list = ref(false)
 const reconciliationAndInvoice_list = ref([])
 async function searchAccountGroup() {
   isLoadingReconciliationAndInvoice_list.value = true
-  fetchSubtotalData()
   try {
     const response = await apiClient.post('/main/accountGroup', {
       date: search_month.value,
@@ -264,7 +272,13 @@ function logout() {
     </div>
     <p class="fw-bold">對帳單&發票查詢</p>
 
-    <el-table class="mb-3" border :data="[subtotal_data]" v-loading="isLoadingSubtotal_data">
+    <el-table
+      v-if="transaction_mode == 1"
+      class="mb-3"
+      border
+      :data="[subtotal_data]"
+      v-loading="isLoadingSubtotal_data"
+    >
       <el-table-column
         align="center"
         :min-width="
@@ -286,6 +300,14 @@ function logout() {
             {{ scope.row[item.prop] }}
           </span>
         </template>
+      </el-table-column>
+    </el-table>
+    <el-table v-else class="mb-3" border :data="collateral_data" v-loading="isLoadingSubtotal_data">
+      <el-table-column align="center" min-width="100" prop="collateralType" label="擔保品種類">
+      </el-table-column>
+      <el-table-column align="center" min-width="130" prop="collateralAmount" label="擔保品額度">
+      </el-table-column>
+      <el-table-column align="center" min-width="120" prop="paymentDeadline" label="款項繳費期限">
       </el-table-column>
     </el-table>
     <p>*本期匯入金額已先預扣本期製卡費用</p>
