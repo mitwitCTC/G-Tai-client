@@ -54,6 +54,7 @@ async function submitForm() {
     }
   } catch (error) {
     console.error(error)
+    setLoginResult('登入失敗')
   }
   resetLoginResult()
 }
