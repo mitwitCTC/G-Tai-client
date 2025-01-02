@@ -8,19 +8,23 @@ const companyStore = useCompanyStore()
 import apiServer from '@/apiServer' // 載入 apiServer
 import apiClient from '@/api' // 載入 apiClient
 const company_info = ref({})
+const company_info_loading = ref(false)
 async function getCompany_info() {
+  company_info_loading.value = true
   try {
     const response = await apiServer.post('/main/searchCustomer', {
       cus_code: companyStore.company_info.customerId
     })
     company_info.value.customerId = response.data.data[0].cus_code
-    company_info.value.customerName = response.data.data[0].company_title
+    company_info.value.customerName = response.data.data[0].cus_name
     company_info.value.vat_number = response.data.data[0].vat_number
     company_info.value.company_tel = response.data.data[0].phone
     company_info.value.fax_number = response.data.data[0].fax
     company_info.value.delivery_address = response.data.data[0].mail_address
   } catch (error) {
     console.error(error)
+  } finally {
+    company_info_loading.value = false
   }
 }
 onMounted(() => {
@@ -40,7 +44,9 @@ function formatLabel(key) {
 
 // 聯絡人資料
 const contact_data = ref([])
+const contact_loading = ref(false)
 async function getContact_data() {
+  contact_loading.value = true
   try {
     const response = await apiServer.post('/main/searchContact', {
       customerId: companyStore.company_info.customerId
@@ -53,6 +59,8 @@ async function getContact_data() {
     }))
   } catch (error) {
     console.error(error)
+  } finally {
+    contact_loading.value = false
   }
 }
 onMounted(() => {
@@ -61,7 +69,9 @@ onMounted(() => {
 
 // 分公司資料
 const subsidiary_data = ref([])
+const subsidiary_data_loading = ref(false)
 async function getSubsidiary_data() {
+  subsidiary_data_loading.value = true
   try {
     const response = await apiClient.post('/main/accountGroup', {
       customerId: companyStore.company_info.customerId
@@ -72,6 +82,8 @@ async function getSubsidiary_data() {
     }))
   } catch (error) {
     console.error(error)
+  } finally {
+    subsidiary_data_loading.value = false
   }
 }
 onMounted(() => {
@@ -123,19 +135,26 @@ function logout() {
       <button class="btn btn-yellow" @click="logout">登出</button>
     </div>
     <!-- 客戶基本資料表 -->
-    <table class="table">
-      <tbody v-for="(item, index) in [company_info]" :key="index">
-        <tr v-for="(value, key) in item" :key="key">
-          <td>{{ formatLabel(key) }}</td>
-          <td>
-            <span>{{ value }}</span>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+    <div class="table-responsive">
+      <table class="table" v-if="!company_info_loading">
+        <tbody v-for="(item, index) in [company_info]" :key="index">
+          <tr v-for="(value, key) in item" :key="key">
+            <td>{{ formatLabel(key) }}</td>
+            <td>
+              <span>{{ value }}</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <div v-else class="d-flex justify-content-center align-items-center" style="height: 200px">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+      </div>
+    </div>
     <hr />
     <!-- 客戶聯絡人表 -->
-    <el-table :data="contact_data">
+    <el-table :data="contact_data" v-loading="contact_loading">
       <el-table-column align="center" prop="job_title" label="職稱" />
       <el-table-column align="center" prop="name" label="聯絡人姓名" min-width="100" />
       <el-table-column align="center" prop="mobile" label="聯絡人電話" min-width="120" />
@@ -143,7 +162,7 @@ function logout() {
     </el-table>
     <hr />
     <!-- 分公司資料表 -->
-    <el-table :data="subsidiary_data">
+    <el-table :data="subsidiary_data" v-loading="subsidiary_data_loading">
       <el-table-column align="center" prop="name" label="分公司名稱" min-width="140" />
       <el-table-column align="center" prop="vat_number" label="統一編號" />
     </el-table>
