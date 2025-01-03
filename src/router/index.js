@@ -38,16 +38,6 @@ const router = createRouter({
       path: '/line-reconciliation-invoice',
       name: 'ReconciliationAndInvoiceForLine',
       component: () => import('@/views/LineReconciliationAndInvoice.vue')
-    },
-    {
-      path: '/accountStatement',
-      name: 'accountStatement',
-      component: () => import('@/views/AccountStatement.vue')
-    },
-    {
-      path: '/accountDetails',
-      name: 'accountDetails',
-      component: () => import('@/views/AccountDetails.vue')
     }
   ]
 })

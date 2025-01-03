@@ -3,11 +3,9 @@ import { ref, watch, onMounted, computed } from 'vue'
 import router from '@/router'
 import { useCompanyStore } from '@/stores/companyStore'
 const companyStore = useCompanyStore()
-// 查詢對帳單總表及對帳單明細
-import { useSearchAccountStore } from '@/stores/accountStore'
-const searchAccountStore = useSearchAccountStore()
 import { ElLoading } from 'element-plus'
 
+const cus_code = ref(companyStore.company_info.customerId)
 // 預設當月
 const today = new Date()
 const currentYear = today.getFullYear()
@@ -15,7 +13,6 @@ const current_month = String(today.getMonth() + 1).padStart(2, '0')
 
 const search_month = ref(`${currentYear}-${current_month}`)
 const currentMonth = ref('')
-let config_notes
 
 // API 根路由
 import apiClient from '@/api' // 載入 apiClient
@@ -198,38 +195,6 @@ watch(search_month, () => {
   updateCurrentMonth()
 })
 
-// 跳轉到對應的頁面
-const goToAccountStatement = (account_sortId, acc_name, invoice_name) => {
-  const searchAccount_info = {
-    date: search_month.value,
-    account_sortId: account_sortId,
-    customerId: companyStore.company_info.customerId,
-    acc_name: acc_name,
-    invoice_name: invoice_name,
-    customerName: companyStore.company_info.customerName,
-    transaction_mode: transaction_mode.value, //交易模式
-    last_month_balance: subtotal_data.value.last_month_balance, //前期餘額
-    current_month_remittance_amount: subtotal_data.value.current_month_remittance_amount, //本期匯入
-    current_month_fuel_total: subtotal_data.value.current_month_fuel_total, //本期使用
-    current_month_balance: subtotal_data.value.current_month_balance, //本期餘額
-    payment_deadline: subtotal_data.value.payment_deadline, //月結繳款期限
-    config_notes: config_notes //擔保品
-  }
-  searchAccountStore.setSearchAccount(searchAccount_info)
-  router.push('/accountStatement')
-}
-const goToAccountDetails = (account_sortId, acc_name, invoice_name) => {
-  const searchAccount_info = {
-    date: search_month.value,
-    account_sortId: account_sortId,
-    customerId: companyStore.company_info.customerId,
-    acc_name: acc_name,
-    invoice_name: invoice_name,
-    customerName: companyStore.company_info.customerName
-  }
-  searchAccountStore.setSearchAccount(searchAccount_info)
-  router.push('/accountDetails')
-}
 // loading 狀態
 const svg = `
         <path class="path" d="
@@ -241,6 +206,68 @@ const svg = `
           L 15 15
         " style="stroke-width: 4px; fill: rgba(0, 0, 0, 0)"/>
       `
+const isdownloadingAccountStatement = ref(false)
+async function downloadAccountStatement(account_sortId, acc_name) {
+  isdownloadingAccountStatement.value = true
+  try {
+    const response = await apiClient.post(
+      '/main/downloadAccountStatement',
+      {
+        date: search_month.value,
+        customerId: companyStore.company_info.customerId,
+        account_sortId: account_sortId
+      },
+      { responseType: 'blob' } // 確保回傳型態是二進位
+    )
+
+    if (response.data.returnCode == -1 || response.data.returnCode == -2) {
+      alert(response.data.message)
+    }
+    // 檢查回傳的資料
+    if (!response.data || !(response.data instanceof Blob)) {
+      throw new Error('回傳資料非有效 PDF 格式')
+    }
+    const fileName = `${search_month.value}總表_${cus_code.value}_${acc_name}.pdf`
+
+    downloadFile(new Blob([response.data]), fileName)
+  } catch (error) {
+    alert('下載失敗')
+    console.error(error)
+  } finally {
+    isdownloadingAccountStatement.value = false
+  }
+}
+const isdownloadingAccountDetails = ref(false)
+async function downloadAccountDetails(account_sortId, acc_name) {
+  isdownloadingAccountDetails.value = true
+  try {
+    const response = await apiClient.post(
+      '/main/downloadAccountDetails',
+      {
+        date: search_month.value,
+        customerId: cus_code.value,
+        account_sortId: account_sortId
+      },
+      { responseType: 'blob' } // 確保回傳型態是二進位
+    )
+
+    if (response.data.returnCode == -1 || response.data.returnCode == -2) {
+      alert(response.data.message)
+    }
+    // 檢查回傳的資料
+    if (!response.data || !(response.data instanceof Blob)) {
+      throw new Error('回傳資料非有效 PDF 格式')
+    }
+    const fileName = `${search_month.value}明細_${cus_code.value}_${acc_name}.pdf`
+
+    downloadFile(new Blob([response.data]), fileName)
+  } catch (error) {
+    alert('下載失敗')
+    console.error(error)
+  } finally {
+    isdownloadingAccountDetails.value = false
+  }
+}
 
 const thisMonth = ref('')
 thisMonth.value = `${currentYear}-${current_month}` // 實際本月年-月
@@ -356,6 +383,20 @@ function logout() {
       element-loading-svg-view-box="-10, -10, 50, 50"
       element-loading-background="rgba(122, 122, 122, 0.8)"
     ></div>
+    <div
+      element-loading-text="下載對帳單總表中..."
+      :element-loading-spinner="svg"
+      v-loading.fullscreen="isdownloadingAccountStatement"
+      element-loading-svg-view-box="-10, -10, 50, 50"
+      element-loading-background="rgba(122, 122, 122, 0.8)"
+    ></div>
+    <div
+      element-loading-text="下載對帳單明細中..."
+      :element-loading-spinner="svg"
+      v-loading.fullscreen="isdownloadingAccountDetails"
+      element-loading-svg-view-box="-10, -10, 50, 50"
+      element-loading-background="rgba(122, 122, 122, 0.8)"
+    ></div>
     <el-table
       :data="reconciliationAndInvoice_list"
       v-loading="isLoadingReconciliationAndInvoice_list"
@@ -369,23 +410,23 @@ function logout() {
 
       <el-table-column prop="account_sortId" label="帳單總表" align="center" min-width="120">
         <template #default="{ row }">
-          <router-link
-            to="accountStatement"
-            @click="goToAccountStatement(row.account_sortId, row.acc_name, row.invoice_name)"
+          <a
+            class="pointer"
+            @click="downloadAccountStatement(row.account_sortId, row.acc_name, row.invoice_name)"
           >
             總表
-          </router-link>
+          </a>
         </template>
       </el-table-column>
 
       <el-table-column prop="account_sortId" label="帳單明細" align="center" min-width="120">
         <template #default="{ row }">
-          <router-link
-            to="accountDetails"
-            @click="goToAccountDetails(row.account_sortId, row.acc_name, row.invoice_name)"
+          <a
+            class="pointer"
+            @click="downloadAccountDetails(row.account_sortId, row.acc_name, row.invoice_name)"
           >
             明細
-          </router-link>
+          </a>
         </template>
       </el-table-column>
 

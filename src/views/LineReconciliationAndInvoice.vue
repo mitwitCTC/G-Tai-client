@@ -88,13 +88,6 @@ async function searchAccountGroup() {
   }
 }
 
-// 跳轉到對應的頁面
-const goToAccountStatement = () => {
-  alert('下載帳單總表功能開發中')
-}
-const goToAccountDetails = () => {
-  alert('下載帳單明細功能開發中')
-}
 // loading 狀態
 const svg = `
         <path class="path" d="
@@ -106,6 +99,68 @@ const svg = `
           L 15 15
         " style="stroke-width: 4px; fill: rgba(0, 0, 0, 0)"/>
       `
+const isdownloadingAccountStatement = ref(false)
+async function downloadAccountStatement(account_sortId, acc_name) {
+  isdownloadingAccountStatement.value = true
+  try {
+    const response = await apiClient.post(
+      '/main/downloadAccountStatement',
+      {
+        date: search_month.value,
+        customerId: cus_code.value,
+        account_sortId: account_sortId
+      },
+      { responseType: 'blob' } // 確保回傳型態是二進位
+    )
+
+    if (response.data.returnCode == -1 || response.data.returnCode == -2) {
+      alert(response.data.message)
+    }
+    // 檢查回傳的資料
+    if (!response.data || !(response.data instanceof Blob)) {
+      throw new Error('回傳資料非有效 PDF 格式')
+    }
+    const fileName = `${search_month.value}總表_${cus_code.value}_${acc_name}.pdf`
+
+    downloadFile(new Blob([response.data]), fileName)
+  } catch (error) {
+    alert('下載失敗')
+    console.error(error)
+  } finally {
+    isdownloadingAccountStatement.value = false
+  }
+}
+const isdownloadingAccountDetails = ref(false)
+async function downloadAccountDetails(account_sortId, acc_name) {
+  isdownloadingAccountDetails.value = true
+  try {
+    const response = await apiClient.post(
+      '/main/downloadAccountStatement',
+      {
+        date: search_month.value,
+        customerId: cus_code.value,
+        account_sortId: account_sortId
+      },
+      { responseType: 'blob' } // 確保回傳型態是二進位
+    )
+
+    if (response.data.returnCode == -1 || response.data.returnCode == -2) {
+      alert(response.data.message)
+    }
+    // 檢查回傳的資料
+    if (!response.data || !(response.data instanceof Blob)) {
+      throw new Error('回傳資料非有效 PDF 格式')
+    }
+    const fileName = `${search_month.value}明細_${cus_code.value}_${acc_name}.pdf`
+
+    downloadFile(new Blob([response.data]), fileName)
+  } catch (error) {
+    alert('下載失敗')
+    console.error(error)
+  } finally {
+    isdownloadingAccountDetails.value = false
+  }
+}
 
 const isDownloadingInvoice = ref(false)
 async function downloadInvoice(account_sortId, acc_name) {
@@ -122,7 +177,7 @@ async function downloadInvoice(account_sortId, acc_name) {
       { responseType: 'blob' } // 確保回傳型態是二進位
     )
 
-    if (response.data.returnCode == -1) {
+    if (response.data.returnCode == -1 || response.data.returnCode == -2) {
       alert(response.data.message)
     }
     // 檢查回傳的資料
@@ -217,6 +272,20 @@ async function share() {
       element-loading-svg-view-box="-10, -10, 50, 50"
       element-loading-background="rgba(122, 122, 122, 0.8)"
     ></div>
+    <div
+      element-loading-text="下載對帳單總表中..."
+      :element-loading-spinner="svg"
+      v-loading.fullscreen="isdownloadingAccountStatement"
+      element-loading-svg-view-box="-10, -10, 50, 50"
+      element-loading-background="rgba(122, 122, 122, 0.8)"
+    ></div>
+    <div
+      element-loading-text="下載對帳單明細中..."
+      :element-loading-spinner="svg"
+      v-loading.fullscreen="isdownloadingAccountDetails"
+      element-loading-svg-view-box="-10, -10, 50, 50"
+      element-loading-background="rgba(122, 122, 122, 0.8)"
+    ></div>
     <el-table
       :data="reconciliationAndInvoice_list"
       v-loading="isLoadingReconciliationAndInvoice_list"
@@ -230,7 +299,7 @@ async function share() {
 
       <el-table-column prop="account_sortId" label="帳單總表" align="center" min-width="120">
         <template #default="{ row }">
-          <a class="pointer" @click="goToAccountStatement(row.account_sortId, row.acc_name)">
+          <a class="pointer" @click="downloadAccountStatement(row.account_sortId, row.acc_name)">
             總表
           </a>
         </template>
@@ -238,7 +307,7 @@ async function share() {
 
       <el-table-column prop="account_sortId" label="帳單明細" align="center" min-width="120">
         <template #default="{ row }">
-          <a class="pointer" @click="goToAccountDetails(row.account_sortId, row.acc_name)">
+          <a class="pointer" @click="downloadAccountDetails(row.account_sortId, row.acc_name)">
             明細
           </a>
         </template>
