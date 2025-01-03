@@ -196,11 +196,6 @@ async function searchAccountGroup() {
 
 watch(search_month, () => {
   updateCurrentMonth()
-  searchAccountGroup()
-  checkDataAvailability()
-})
-onMounted(() => {
-  searchAccountGroup()
 })
 
 // 跳轉到對應的頁面
@@ -351,7 +346,7 @@ function logout() {
       format="YYYY-MM"
       value-format="YYYY-MM"
       placeholder="請選擇查詢帳戶月份"
-      @change="searchAccountGroup"
+      @change="checkDataAvailability"
     />
     <p class="mt-4">{{ currentMonth }}月份對帳單&發票檔案列表</p>
     <div
