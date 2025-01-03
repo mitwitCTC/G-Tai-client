@@ -6,6 +6,7 @@ const companyStore = useCompanyStore()
 // 查詢對帳單總表及對帳單明細
 import { useSearchAccountStore } from '@/stores/accountStore'
 const searchAccountStore = useSearchAccountStore()
+import { ElLoading } from 'element-plus'
 
 // 預設當月
 const today = new Date()
@@ -146,8 +147,38 @@ function formatNumber(value) {
   return typeof value === 'number' ? value.toLocaleString('en-US') : value
 }
 
-const isLoadingReconciliationAndInvoice_list = ref(false)
 const reconciliationAndInvoice_list = ref([])
+const loadingInstance = ref(null)
+async function checkDataAvailability() {
+  // 顯示 loading 遮罩
+  loadingInstance.value = ElLoading.service({
+    fullscreen: true,
+    text: '載入中...',
+    background: 'rgba(0, 0, 0, 0.5)'
+  })
+  try {
+    const response = await apiClient.post('/main/dataJudgment', {
+      date: search_month.value
+    })
+    if (response.data.returnCode == 0) {
+      searchAccountGroup()
+    } else {
+      reconciliationAndInvoice_list.value = []
+    }
+  } catch (error) {
+    console.error(error)
+    reconciliationAndInvoice_list.value = []
+  } finally {
+    setTimeout(() => {
+      loadingInstance.value.close()
+    }, 1000)
+  }
+}
+onMounted(() => {
+  checkDataAvailability()
+})
+
+const isLoadingReconciliationAndInvoice_list = ref(false)
 async function searchAccountGroup() {
   isLoadingReconciliationAndInvoice_list.value = true
   try {
@@ -164,7 +195,9 @@ async function searchAccountGroup() {
 }
 
 watch(search_month, () => {
+  updateCurrentMonth()
   searchAccountGroup()
+  checkDataAvailability()
 })
 onMounted(() => {
   searchAccountGroup()
