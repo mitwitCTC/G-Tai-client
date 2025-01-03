@@ -35,6 +35,11 @@ const router = createRouter({
       component: () => import('@/views/ReconciliationAndInvoice.vue')
     },
     {
+      path: '/line-reconciliation-invoice',
+      name: 'ReconciliationAndInvoiceForLine',
+      component: () => import('@/views/LineReconciliationAndInvoice.vue')
+    },
+    {
       path: '/accountStatement',
       name: 'accountStatement',
       component: () => import('@/views/AccountStatement.vue')
@@ -50,7 +55,9 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
   const token = sessionStorage.getItem('token')
 
-  if (to.name === 'login' && token) {
+  if (to.name === 'ReconciliationAndInvoiceForLine') {
+    next()
+  } else if (to.name === 'login' && token) {
     next({ name: 'home' })
   } else if (to.name !== 'login' && !token) {
     next({ name: 'login' })
