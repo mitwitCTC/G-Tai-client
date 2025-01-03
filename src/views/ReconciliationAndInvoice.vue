@@ -195,6 +195,7 @@ async function searchAccountGroup() {
 }
 
 watch(search_month, () => {
+  updateCurrentMonth()
   searchAccountGroup()
   checkDataAvailability()
 })
