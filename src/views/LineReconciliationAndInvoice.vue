@@ -110,7 +110,6 @@ const svg = `
 const isDownloadingInvoice = ref(false)
 async function downloadInvoice(account_sortId, acc_name) {
   isDownloadingInvoice.value = true
-  console.log(search_month.value, cus_code.value, account_sortId)
 
   try {
     const response = await apiClient.post(
@@ -189,7 +188,7 @@ async function share() {
 <template>
   <div class="container mt-5">
     <h4>
-      {{ cus_code }}
+      {{ cus_name }}
     </h4>
     <h4>帳單期別：{{ search_month }}</h4>
     <div class="d-flex flex-nowrap justify-content-md-end justify-content-sm-center gap-1 mb-2">
