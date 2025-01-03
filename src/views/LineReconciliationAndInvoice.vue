@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import router from '@/router'
+import { ElLoading } from 'element-plus'
 
 const cus_code = ref('')
 const cus_name = ref('')
@@ -41,8 +42,37 @@ onMounted(() => {
   getCompanyInfo()
 })
 
-const isLoadingReconciliationAndInvoice_list = ref(false)
 const reconciliationAndInvoice_list = ref([])
+const loadingInstance = ref(null)
+async function checkDataAvailability() {
+  // 顯示 loading 遮罩
+  loadingInstance.value = ElLoading.service({
+    fullscreen: true,
+    text: '載入中...',
+    background: 'rgba(0, 0, 0, 0.5)'
+  })
+  try {
+    const response = await apiClient.post('/main/dataJudgment', {
+      date: search_month.value
+    })
+    if (response.data.returnCode == 0) {
+      searchAccountGroup()
+    } else {
+      reconciliationAndInvoice_list.value = []
+    }
+  } catch (error) {
+    console.error(error)
+    reconciliationAndInvoice_list.value = []
+  } finally {
+    setTimeout(() => {
+      loadingInstance.value.close()
+    }, 1000)
+  }
+}
+onMounted(() => {
+  checkDataAvailability()
+})
+const isLoadingReconciliationAndInvoice_list = ref(false)
 async function searchAccountGroup() {
   isLoadingReconciliationAndInvoice_list.value = true
   try {
@@ -57,10 +87,6 @@ async function searchAccountGroup() {
     isLoadingReconciliationAndInvoice_list.value = false
   }
 }
-
-onMounted(() => {
-  searchAccountGroup()
-})
 
 // 跳轉到對應的頁面
 const goToAccountStatement = () => {
