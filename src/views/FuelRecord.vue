@@ -5,6 +5,8 @@ import { ref, watch, computed, onMounted } from 'vue'
 import FileSaver from 'file-saver'
 import * as XLSX from 'xlsx'
 import router from '@/router'
+const cus_code = companyStore.company_info.customerId
+const customerName = companyStore.company_info.customerName
 
 // 預設當月
 const today = new Date()
@@ -29,7 +31,7 @@ const update_time = ref('')
 async function fetchUpdateTime() {
   try {
     const response = await apiClient.post('/main/lastUpdateTime', {
-      customerId: companyStore.company_info.customerId
+      customerId: cus_code
     })
     update_time.value = response.data.data
   } catch (error) {
@@ -84,7 +86,7 @@ async function fetchSubtotalData() {
     try {
       const response = await apiClient.post('/main/monthlyBalance', {
         date: search_month.value,
-        customerId: companyStore.company_info.customerId
+        customerId: cus_code
       })
       subtotal_data.value.current_month_balance = formatNumber(
         Number(response.data.data[0].thisMonthOverage)
@@ -105,7 +107,7 @@ async function fetchSubtotalData() {
     isLoadingSubtotal_data.value = true
     try {
       const response = await apiClient.post('/main/collateralInfo', {
-        cus_code: companyStore.company_info.customerId
+        cus_code: cus_code
       })
       const rawData = response.data.data[0]
       const configNotes = rawData.config_notes || ''
@@ -166,7 +168,7 @@ async function fetchFuelData() {
   try {
     const response = await apiClient.post('/main/balanceInquiry', {
       date: search_month.value,
-      customerId: companyStore.company_info.customerId
+      customerId: cus_code
     })
     fuel_record.value = response.data.data.map((item) => ({
       team: item.acc_name,
@@ -357,6 +359,10 @@ function logout() {
       </router-link>
       <button class="btn btn-yellow" @click="logout">登出</button>
     </div>
+    <h3>
+      {{ customerName }}
+      <span>({{ cus_code }})</span>
+    </h3>
     <p class="text-end" v-if="update_time != '無最後更新時間'">
       最後資料更新時間：{{ update_time }}
     </p>

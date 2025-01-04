@@ -3,6 +3,8 @@ import { useCompanyStore } from '@/stores/companyStore'
 const companyStore = useCompanyStore()
 import { ref, watch, computed, onMounted } from 'vue'
 import router from '@/router'
+const cus_code = companyStore.company_info.customerId
+const customerName = companyStore.company_info.customerName
 
 // 預設當月
 const today = new Date()
@@ -19,7 +21,7 @@ const transaction_time = ref('')
 async function fetchTransactionTime() {
   try {
     const response = await apiClient.post('/main/lastUpdateTime', {
-      customerId: companyStore.company_info.customerId
+      customerId: cus_code
     })
     transaction_time.value = response.data.data
   } catch (error) {
@@ -81,7 +83,7 @@ async function fetchSubtotalData() {
     try {
       const response = await apiClient.post('/main/monthlyBalance', {
         date: transfer_search_month.value,
-        customerId: companyStore.company_info.customerId
+        customerId: cus_code
       })
       subtotal_data.value.current_month_balance = formatNumber(
         Number(response.data.data[0].thisMonthOverage)
@@ -102,7 +104,7 @@ async function fetchSubtotalData() {
     isLoadingSubtotal_data.value = true
     try {
       const response = await apiClient.post('/main/collateralInfo', {
-        cus_code: companyStore.company_info.customerId
+        cus_code: cus_code
       })
       const rawData = response.data.data[0]
       const configNotes = rawData.config_notes || ''
@@ -173,7 +175,7 @@ async function fetchTransferData() {
   try {
     const response = await apiClient.post('/main/remittanceRecord', {
       date: transfer_search_month.value,
-      customerId: companyStore.company_info.customerId
+      customerId: cus_code
     })
     transfer_record.value = response.data.data
     transfer_record.value = response.data.data.map((item) => ({
@@ -244,6 +246,10 @@ function logout() {
       </router-link>
       <button class="btn btn-yellow" @click="logout">登出</button>
     </div>
+    <h3>
+      {{ customerName }}
+      <span>({{ cus_code }})</span>
+    </h3>
     <p class="d-flex justify-content-between">
       <span class="fw-bold">匯款紀錄查詢</span>
       <span v-if="transaction_time != '無最後更新時間'">結帳時間：{{ transaction_time }}</span>

@@ -5,7 +5,8 @@ import { useCompanyStore } from '@/stores/companyStore'
 const companyStore = useCompanyStore()
 import { ElLoading } from 'element-plus'
 
-const cus_code = ref(companyStore.company_info.customerId)
+const cus_code = companyStore.company_info.customerId
+const customerName = companyStore.company_info.customerName
 // 預設當月
 const today = new Date()
 const currentYear = today.getFullYear()
@@ -56,7 +57,7 @@ async function fetchSubtotalData() {
     try {
       const response = await apiClient.post('/main/monthlyBalance', {
         date: search_month.value,
-        customerId: companyStore.company_info.customerId
+        customerId: cus_code
       })
       subtotal_data.value.current_month_balance = formatNumber(
         Number(response.data.data[0].thisMonthOverage)
@@ -77,7 +78,7 @@ async function fetchSubtotalData() {
     isLoadingSubtotal_data.value = true
     try {
       const response = await apiClient.post('/main/collateralInfo', {
-        cus_code: companyStore.company_info.customerId
+        cus_code: cus_code
       })
       const rawData = response.data.data[0]
       const configNotes = rawData.config_notes || ''
@@ -181,7 +182,7 @@ async function searchAccountGroup() {
   try {
     const response = await apiClient.post('/main/accountGroup', {
       date: search_month.value,
-      customerId: companyStore.company_info.customerId
+      customerId: cus_code
     })
     reconciliationAndInvoice_list.value = response.data.data
   } catch (error) {
@@ -214,7 +215,7 @@ async function downloadAccountStatement(account_sortId, acc_name) {
       '/main/downloadAccountStatement',
       {
         date: search_month.value,
-        customerId: companyStore.company_info.customerId,
+        customerId: cus_code,
         account_sortId: account_sortId
       },
       { responseType: 'blob' } // 確保回傳型態是二進位
@@ -227,7 +228,7 @@ async function downloadAccountStatement(account_sortId, acc_name) {
     if (!response.data || !(response.data instanceof Blob)) {
       throw new Error('回傳資料非有效 PDF 格式')
     }
-    const fileName = `${search_month.value}總表_${cus_code.value}_${acc_name}.pdf`
+    const fileName = `${search_month.value}總表_${cus_code}_${acc_name}.pdf`
 
     downloadFile(new Blob([response.data]), fileName)
   } catch (error) {
@@ -245,7 +246,7 @@ async function downloadAccountDetails(account_sortId, acc_name) {
       '/main/downloadAccountDetails',
       {
         date: search_month.value,
-        customerId: cus_code.value,
+        customerId: cus_code,
         account_sortId: account_sortId
       },
       { responseType: 'blob' } // 確保回傳型態是二進位
@@ -258,7 +259,7 @@ async function downloadAccountDetails(account_sortId, acc_name) {
     if (!response.data || !(response.data instanceof Blob)) {
       throw new Error('回傳資料非有效 PDF 格式')
     }
-    const fileName = `${search_month.value}明細_${cus_code.value}_${acc_name}.pdf`
+    const fileName = `${search_month.value}明細_${cus_code}_${acc_name}.pdf`
 
     downloadFile(new Blob([response.data]), fileName)
   } catch (error) {
@@ -279,7 +280,7 @@ async function downloadInvoice(account_sortId, acc_name) {
       '/main/downloadInvoice',
       {
         date: search_month.value,
-        customerId: companyStore.company_info.customerId,
+        customerId: cus_code,
         account_sortId: account_sortId
       },
       { responseType: 'blob' } // 確保回傳型態是二進位
@@ -288,7 +289,7 @@ async function downloadInvoice(account_sortId, acc_name) {
     if (!response.data || !(response.data instanceof Blob)) {
       throw new Error('回傳資料非有效 PDF 格式')
     }
-    const fileName = `${search_month.value}發票_${companyStore.company_info.customerId}_${acc_name}.pdf`
+    const fileName = `${search_month.value}發票_${cus_code}_${acc_name}.pdf`
     downloadFile(new Blob([response.data]), fileName)
   } catch (error) {
     alert('下載失敗')
@@ -325,6 +326,10 @@ function logout() {
       </router-link>
       <button class="btn btn-yellow" @click="logout">登出</button>
     </div>
+    <h3>
+      {{ customerName }}
+      <span>({{ cus_code }})</span>
+    </h3>
     <p class="fw-bold">對帳單&發票查詢</p>
 
     <el-table
