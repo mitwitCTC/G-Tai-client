@@ -135,7 +135,7 @@ async function downloadAccountDetails(account_sortId, acc_name) {
   isdownloadingAccountDetails.value = true
   try {
     const response = await apiClient.post(
-      '/main/downloadAccountStatement',
+      '/main/downloadAccountDetails',
       {
         date: search_month.value,
         customerId: cus_code.value,
@@ -207,7 +207,16 @@ const downloadFile = (blob, fileName) => {
   setTimeout(() => URL.revokeObjectURL(link.href), 7000)
 }
 
+function isDesktopBrowser() {
+  // 檢查是否為桌面瀏覽器
+  const userAgent = navigator.userAgent.toLowerCase()
+  return !/mobile|android|iphone|ipad|tablet/.test(userAgent)
+}
 async function downloadAllAccountStatements() {
+  if (!isDesktopBrowser()) {
+    alert('一鍵下載僅支援電腦版')
+    return
+  }
   isdownloadingAccountStatement.value = true
   try {
     const promises = reconciliationAndInvoice_list.value.map((account) =>
@@ -223,6 +232,10 @@ async function downloadAllAccountStatements() {
   }
 }
 async function downloadAllAccountDetails() {
+  if (!isDesktopBrowser()) {
+    alert('一鍵下載僅支援電腦版')
+    return
+  }
   isdownloadingAccountDetails.value = true
   try {
     const promises = reconciliationAndInvoice_list.value.map((account) =>
@@ -238,6 +251,10 @@ async function downloadAllAccountDetails() {
   }
 }
 async function downloadAllInvoice() {
+  if (!isDesktopBrowser()) {
+    alert('一鍵下載僅支援電腦版')
+    return
+  }
   isDownloadingInvoice.value = true
   try {
     const promises = reconciliationAndInvoice_list.value.map((account) =>
@@ -282,6 +299,7 @@ async function share() {
       {{ cus_name }}
     </h4>
     <h4>帳單期別：{{ search_month }}</h4>
+    <p class="text-danger">一鍵下載僅支援電腦版</p>
     <div class="d-flex flex-nowrap justify-content-md-end justify-content-sm-center gap-1 mb-2">
       <button class="btn btn-sm btn-yellow text-nowrap" @click="downloadAllAccountStatements">
         一鍵下載總表
