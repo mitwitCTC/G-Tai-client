@@ -269,7 +269,7 @@ async function share() {
       })
   } else {
     // 使用 Line 分享的方式
-    const lineShareUrl = `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(url)}`
+    const lineShareUrl = `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(url)}?openExternalBrowser=1`
     // 在新標籤中打開 Line 分享頁面
     window.open(lineShareUrl, '_blank')
   }
