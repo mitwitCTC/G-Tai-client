@@ -207,15 +207,51 @@ const downloadFile = (blob, fileName) => {
   setTimeout(() => URL.revokeObjectURL(link.href), 7000)
 }
 
-// async function downloadAllAccountStatements() {
-//   alert('一鍵下載帳單總表功能開發中')
-// }
-// async function downloadAllAccountDetails() {
-//   alert('一鍵下載帳單明細功能開發中')
-// }
-// async function downloadAllInvoice() {
-//   alert('一鍵下載帳單發票功能開發中')
-// }
+async function downloadAllAccountStatements() {
+  isdownloadingAccountStatement.value = true
+  try {
+    const promises = reconciliationAndInvoice_list.value.map((account) =>
+      downloadAccountStatement(account.account_sortId, account.acc_name)
+    )
+    await Promise.all(promises)
+    alert('全部總表下載完成')
+  } catch (error) {
+    alert('下載全部總表時發生錯誤')
+    console.error(error)
+  } finally {
+    isdownloadingAccountStatement.value = false
+  }
+}
+async function downloadAllAccountDetails() {
+  isdownloadingAccountDetails.value = true
+  try {
+    const promises = reconciliationAndInvoice_list.value.map((account) =>
+      downloadAccountDetails(account.account_sortId, account.acc_name)
+    )
+    await Promise.all(promises)
+    alert('全部明細下載完成')
+  } catch (error) {
+    alert('下載全部明細時發生錯誤')
+    console.error(error)
+  } finally {
+    isdownloadingAccountDetails.value = false
+  }
+}
+async function downloadAllInvoice() {
+  isDownloadingInvoice.value = true
+  try {
+    const promises = reconciliationAndInvoice_list.value.map((account) =>
+      downloadInvoice(account.account_sortId, account.acc_name)
+    )
+    await Promise.all(promises)
+    alert('全部發票下載完成')
+  } catch (error) {
+    alert('下載全部發票時發生錯誤')
+    console.error(error)
+  } finally {
+    isDownloadingInvoice.value = false
+  }
+}
 async function share() {
   const url = window.location.href // 當前頁面網址
   const title = document.title // 當前頁面的標題
@@ -247,7 +283,7 @@ async function share() {
     </h4>
     <h4>帳單期別：{{ search_month }}</h4>
     <div class="d-flex flex-nowrap justify-content-md-end justify-content-sm-center gap-1 mb-2">
-      <!-- <button class="btn btn-sm btn-yellow text-nowrap" @click="downloadAllAccountStatements">
+      <button class="btn btn-sm btn-yellow text-nowrap" @click="downloadAllAccountStatements">
         一鍵下載總表
       </button>
       <button class="btn btn-sm btn-yellow text-nowrap" @click="downloadAllAccountDetails">
@@ -255,7 +291,7 @@ async function share() {
       </button>
       <button class="btn btn-sm btn-yellow text-nowrap" @click="downloadAllInvoice">
         一鍵下載發票
-      </button> -->
+      </button>
       <button class="btn btn-sm btn-yellow text-nowrap" @click="share">分享</button>
     </div>
     <div
