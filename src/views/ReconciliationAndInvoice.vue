@@ -419,7 +419,7 @@ function logout() {
             class="pointer"
             @click="downloadAccountStatement(row.account_sortId, row.acc_name, row.invoice_name)"
           >
-            總表
+            <button class="btn btn-yellow">總表</button>
           </a>
         </template>
       </el-table-column>
@@ -430,14 +430,16 @@ function logout() {
             class="pointer"
             @click="downloadAccountDetails(row.account_sortId, row.acc_name, row.invoice_name)"
           >
-            明細
+            <button class="btn btn-yellow">明細</button>
           </a>
         </template>
       </el-table-column>
 
       <el-table-column prop="發票" label="發票" align="center" min-width="120">
         <template #default="{ row }" v-if="thisMonth != search_month">
-          <a class="pointer" @click="downloadInvoice(row.account_sortId, row.acc_name)"> 發票 </a>
+          <a class="pointer" @click="downloadInvoice(row.account_sortId, row.acc_name)">
+            <button class="btn btn-yellow">發票</button>
+          </a>
         </template>
       </el-table-column>
     </el-table>
