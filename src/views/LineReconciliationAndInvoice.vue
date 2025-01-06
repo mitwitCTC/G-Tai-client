@@ -27,13 +27,23 @@ import apiServer from '@/apiServer'
 const isGettingCompanyInfo = ref(false)
 async function getCompanyInfo() {
   isGettingCompanyInfo.value = true
+
   try {
     const response = await apiServer.post('/main/searchCustomer', {
       cus_code: cus_code.value
     })
-    cus_name.value = response.data.data[0].cus_name
+    if (cus_code.value == '') {
+      alert('查無客代')
+    }
+    if(response.data.data.length == 0){
+      alert('查無客戶資料')
+    } else {
+      cus_name.value = response.data.data[0]?.cus_name
+      checkDataAvailability()
+    }
   } catch (error) {
     console.error(error)
+    alert('系統錯誤')
   } finally {
     isGettingCompanyInfo.value = false
   }
@@ -69,9 +79,7 @@ async function checkDataAvailability() {
     }, 1000)
   }
 }
-onMounted(() => {
-  checkDataAvailability()
-})
+
 const isLoadingReconciliationAndInvoice_list = ref(false)
 async function searchAccountGroup() {
   isLoadingReconciliationAndInvoice_list.value = true
