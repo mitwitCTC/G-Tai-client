@@ -160,6 +160,7 @@ async function checkDataAvailability() {
     })
     if (response.data.returnCode == 0) {
       searchAccountGroup()
+      getInvoiceList()
     } else {
       reconciliationAndInvoice_list.value = []
     }
@@ -185,11 +186,58 @@ async function searchAccountGroup() {
       customerId: cus_code
     })
     reconciliationAndInvoice_list.value = response.data.data
+    mergeInvoiceData()
   } catch (error) {
     console.error(error)
   } finally {
     isLoadingReconciliationAndInvoice_list.value = false
   }
+}
+
+const isLoadingInvoiceList = ref(false)
+const invoiceList = ref([])
+async function getInvoiceList() {
+  isLoadingInvoiceList.value = true
+  try {
+    const response = await apiClient.post('/main/searchInvoice', {
+      date: search_month.value,
+      customerId: cus_code
+    })
+    
+    if (response.data.returnCode == 0) {
+      invoiceList.value = response.data.data
+      mergeInvoiceData()
+    } else {
+      invoiceList.value = []
+    }
+  } catch (error) {
+    console.error(error)
+  } finally {
+    isLoadingInvoiceList.value = false
+  }
+}
+
+function mergeInvoiceData() {
+  // 檢查兩個列表是否已獲取
+  if (!reconciliationAndInvoice_list.value.length || !invoiceList.value.length) return
+
+  // 按照 account_sortId 將發票資料合併到 reconciliationAndInvoice_list 中
+  reconciliationAndInvoice_list.value = reconciliationAndInvoice_list.value.flatMap((item) => {
+    // 查找與該帳單相關的所有發票
+    const matchedInvoices = invoiceList.value.filter(
+      (invoice) => invoice.account_sortId === item.account_sortId
+    )
+    
+    if (matchedInvoices.length === 0) {
+      return [{ ...item, invoiceNum: '' }] // 若無匹配發票，則返回空的發票欄位
+    }
+
+    // 若有匹配的發票，對每個發票創建一行資料
+    return matchedInvoices.map((invoice) => ({
+      ...item,
+      invoiceNum: invoice.invoiceNum, // 添加發票號碼
+    }))
+  })
 }
 
 watch(search_month, () => {
@@ -273,7 +321,7 @@ async function downloadAccountDetails(account_sortId, acc_name) {
 const thisMonth = ref('')
 thisMonth.value = `${currentYear}-${current_month}` // 實際本月年-月
 const isDownloadingInvoice = ref(false)
-async function downloadInvoice(account_sortId, acc_name) {
+async function downloadInvoice(account_sortId, acc_name, invoiceNum) {  
   isDownloadingInvoice.value = true
   try {
     const response = await apiClient.post(
@@ -281,7 +329,7 @@ async function downloadInvoice(account_sortId, acc_name) {
       {
         date: search_month.value,
         customerId: cus_code,
-        account_sortId: account_sortId
+        invoiceNum: invoiceNum
       },
       { responseType: 'blob' } // 確保回傳型態是二進位
     )
@@ -402,47 +450,52 @@ function logout() {
       element-loading-svg-view-box="-10, -10, 50, 50"
       element-loading-background="rgba(122, 122, 122, 0.8)"
     ></div>
-    <el-table
-      :data="reconciliationAndInvoice_list"
-      v-loading="isLoadingReconciliationAndInvoice_list"
-    >
-      <el-table-column
-        prop="acc_name"
-        label="帳單名稱"
-        align="center"
-        min-width="180"
-      ></el-table-column>
-
-      <el-table-column prop="account_sortId" label="帳單總表" align="center" min-width="120">
-        <template #default="{ row }">
-          <a
-            class="pointer"
-            @click="downloadAccountStatement(row.account_sortId, row.acc_name, row.invoice_name)"
-          >
-            <button class="btn btn-yellow">總表</button>
-          </a>
-        </template>
-      </el-table-column>
-
-      <el-table-column prop="account_sortId" label="帳單明細" align="center" min-width="120">
-        <template #default="{ row }">
-          <a
-            class="pointer"
-            @click="downloadAccountDetails(row.account_sortId, row.acc_name, row.invoice_name)"
-          >
-            <button class="btn btn-yellow">明細</button>
-          </a>
-        </template>
-      </el-table-column>
-
-      <el-table-column prop="發票" label="發票" align="center" min-width="120">
-        <template #default="{ row }" v-if="thisMonth != search_month">
-          <a class="pointer" @click="downloadInvoice(row.account_sortId, row.acc_name)">
-            <button class="btn btn-yellow">發票</button>
-          </a>
-        </template>
-      </el-table-column>
-    </el-table>
+    <div class="mb-5">
+      <el-table
+        :data="reconciliationAndInvoice_list"
+        v-loading="isLoadingReconciliationAndInvoice_list"
+      >
+        <el-table-column
+          prop="acc_name"
+          label="帳單名稱"
+          align="center"
+          min-width="180"
+        ></el-table-column>
+  
+        <el-table-column prop="account_sortId" label="帳單總表" align="center" min-width="120">
+          <template #default="{ row }">
+            <a
+              class="pointer"
+              @click="downloadAccountStatement(row.account_sortId, row.acc_name, row.invoice_name)"
+            >
+              <button class="btn btn-yellow">總表</button>
+            </a>
+          </template>
+        </el-table-column>
+  
+        <el-table-column prop="account_sortId" label="帳單明細" align="center" min-width="120">
+          <template #default="{ row }">
+            <a
+              class="pointer"
+              @click="downloadAccountDetails(row.account_sortId, row.acc_name, row.invoice_name)"
+            >
+              <button class="btn btn-yellow">明細</button>
+            </a>
+          </template>
+        </el-table-column>
+  
+        <el-table-column prop="發票" label="發票" align="center" min-width="120">
+          <template #default="{ row }" v-if="thisMonth != search_month">
+            <a class="pointer" @click="downloadInvoice(row.account_sortId, row.acc_name, row.invoiceNum)">
+              <button class="btn btn-yellow">
+                <span v-if="row.invoiceNum">{{ row.invoiceNum }}</span>
+                <span v-else>無發票</span>
+              </button>
+            </a>
+          </template>
+        </el-table-column>
+      </el-table>
+    </div>
   </div>
 </template>
 
