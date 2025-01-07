@@ -1,6 +1,7 @@
 <script setup>
 import router from '@/router'
 import { ref, onMounted } from 'vue'
+import { ElLoading } from 'element-plus'
 import { useCompanyStore } from '@/stores/companyStore'
 const companyStore = useCompanyStore()
 
@@ -28,7 +29,14 @@ const customerId = ref('')
 import apiClient from '@/api' // 載入 apiClient
 import apiServer from '@/apiServer' // 載入 apiServer
 
+const isLogining = ref(null)
 async function submitForm() {
+   // 顯示 loading 遮罩
+   isLogining.value = ElLoading.service({
+    fullscreen: true,
+    text: '登入中...',
+    background: 'rgba(0, 0, 0, 0.5)'
+  })
   try {
     const { account, password } = loginForm.value
     const response = await apiClient.post('/main/logIn', {
@@ -55,8 +63,10 @@ async function submitForm() {
   } catch (error) {
     console.error(error)
     setLoginResult('登入失敗')
+  } finally {
+    isLogining.value.close()
+    resetLoginResult()
   }
-  resetLoginResult()
 }
 
 function setLoginResult(message) {
