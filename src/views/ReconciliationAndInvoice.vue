@@ -221,22 +221,18 @@ function mergeInvoiceData() {
   // 檢查兩個列表是否已獲取
   if (!reconciliationAndInvoice_list.value.length || !invoiceList.value.length) return
 
-  // 按照 account_sortId 將發票資料合併到 reconciliationAndInvoice_list 中
-  reconciliationAndInvoice_list.value = reconciliationAndInvoice_list.value.flatMap((item) => {
-    // 查找與該帳單相關的所有發票
+  // 按照 account_sortId 合併發票資料
+  reconciliationAndInvoice_list.value = reconciliationAndInvoice_list.value.map((item) => {
+    // 找到所有與該帳單相關的發票
     const matchedInvoices = invoiceList.value.filter(
       (invoice) => invoice.account_sortId === item.account_sortId
     )
     
-    if (matchedInvoices.length === 0) {
-      return [{ ...item, invoiceNum: '' }] // 若無匹配發票，則返回空的發票欄位
-    }
-
-    // 若有匹配的發票，對每個發票創建一行資料
-    return matchedInvoices.map((invoice) => ({
+    // 將 matchedInvoices 的發票號碼收集到陣列中
+    return {
       ...item,
-      invoiceNum: invoice.invoiceNum, // 添加發票號碼
-    }))
+      invoiceNums: matchedInvoices.map((invoice) => invoice.invoiceNum), // 收集發票號碼
+    }
   })
 }
 
@@ -332,7 +328,11 @@ async function downloadInvoice(account_sortId, acc_name, invoiceNum) {
         invoiceNum: invoiceNum
       },
       { responseType: 'blob' } // 確保回傳型態是二進位
-    )
+    )    
+
+    if (response.data.returnCode == -1 || response.data.returnCode == -2) {
+      alert(response.data.message)
+    }
     // 檢查回傳的資料
     if (!response.data || !(response.data instanceof Blob)) {
       throw new Error('回傳資料非有效 PDF 格式')
@@ -484,14 +484,17 @@ function logout() {
           </template>
         </el-table-column>
   
-        <el-table-column prop="發票" label="發票" align="center" min-width="120">
-          <template #default="{ row }" v-if="thisMonth != search_month">
-            <a class="pointer" @click="downloadInvoice(row.account_sortId, row.acc_name, row.invoiceNum)">
-              <button class="btn btn-yellow">
-                <span v-if="row.invoiceNum">{{ row.invoiceNum }}</span>
-                <span v-else>無發票</span>
-              </button>
+        <el-table-column prop="發票" label="發票" align="center" min-width="140">
+          <template #default="{ row }">
+            <a v-if="row.invoiceNums && row.invoiceNums.length > 0" class="pointer">
+              <div class="d-flex flex-column gap-1 align-items-center">
+                <button class="btn btn-yellow" v-for="(invoiceNum, index) in row.invoiceNums"
+                :key="index">
+                  <span @click="downloadInvoice(row.account_sortId, row.acc_name, invoiceNum)">{{ invoiceNum }}</span>
+                </button>
+              </div>
             </a>
+            <span v-else></span>
           </template>
         </el-table-column>
       </el-table>

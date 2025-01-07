@@ -124,22 +124,18 @@ function mergeInvoiceData() {
   // 檢查兩個列表是否已獲取
   if (!reconciliationAndInvoice_list.value.length || !invoiceList.value.length) return
 
-  // 按照 account_sortId 將發票資料合併到 reconciliationAndInvoice_list 中
-  reconciliationAndInvoice_list.value = reconciliationAndInvoice_list.value.flatMap((item) => {
-    // 查找與該帳單相關的所有發票
+  // 按照 account_sortId 合併發票資料
+  reconciliationAndInvoice_list.value = reconciliationAndInvoice_list.value.map((item) => {
+    // 找到所有與該帳單相關的發票
     const matchedInvoices = invoiceList.value.filter(
       (invoice) => invoice.account_sortId === item.account_sortId
     )
     
-    if (matchedInvoices.length === 0) {
-      return [{ ...item, invoiceNum: '' }] // 若無匹配發票，則返回空的發票欄位
-    }
-
-    // 若有匹配的發票，對每個發票創建一行資料
-    return matchedInvoices.map((invoice) => ({
+    // 將 matchedInvoices 的發票號碼收集到陣列中
+    return {
       ...item,
-      invoiceNum: invoice.invoiceNum, // 添加發票號碼
-    }))
+      invoiceNums: matchedInvoices.map((invoice) => invoice.invoiceNum), // 收集發票號碼
+    }
   })
 }
 // loading 狀態
@@ -311,11 +307,19 @@ async function downloadAllInvoice() {
   }
   isDownloadingInvoice.value = true
   try {
-    const promises = reconciliationAndInvoice_list.value.map((account) =>
-      downloadInvoice(account.account_sortId, account.acc_name, account.invoiceNum)
-    )
-    await Promise.all(promises)
-    alert('全部發票下載完成')
+    // 將所有需要下載的請求收集到 promises 陣列中
+    const promises = [];
+    reconciliationAndInvoice_list.value.forEach((account) => {
+      account.invoiceNums.forEach((invoiceNum) => {
+        promises.push(
+          downloadInvoice(account.account_sortId, account.acc_name, invoiceNum)
+        );
+      });
+    });
+
+    // 等待所有下載完成
+    await Promise.all(promises);
+    alert('全部發票下載完成');
   } catch (error) {
     alert('下載全部發票時發生錯誤')
     console.error(error)
@@ -422,14 +426,17 @@ async function share() {
           </template>
         </el-table-column>
   
-        <el-table-column prop="invoiceNum" label="發票" align="center" min-width="120">
+        <el-table-column prop="發票" label="發票" align="center" min-width="140">
           <template #default="{ row }">
-            <a class="pointer" @click="downloadInvoice(row.account_sortId, row.acc_name, row.invoiceNum)">
-              <button class="btn btn-yellow">
-                <span v-if="row.invoiceNum">{{ row.invoiceNum }}</span>
-                <span v-else>無發票</span>
-              </button>
+            <a v-if="row.invoiceNums && row.invoiceNums.length > 0" class="pointer">
+              <div class="d-flex flex-column gap-1 align-items-center">
+                <button class="btn btn-yellow" v-for="(invoiceNum, index) in row.invoiceNums"
+                :key="index">
+                  <span @click="downloadInvoice(row.account_sortId, row.acc_name, invoiceNum)">{{ invoiceNum }}</span>
+                </button>
+              </div>
             </a>
+            <span v-else></span>
           </template>
         </el-table-column>
       </el-table>
