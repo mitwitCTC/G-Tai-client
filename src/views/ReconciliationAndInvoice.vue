@@ -453,7 +453,7 @@ function logout() {
     <div class="mb-5">
       <el-table
         :data="reconciliationAndInvoice_list"
-        v-loading="isLoadingReconciliationAndInvoice_list"
+        v-loading="isLoadingReconciliationAndInvoice_list || isLoadingInvoiceList"
       >
         <el-table-column
           prop="acc_name"

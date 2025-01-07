@@ -54,7 +54,9 @@ onMounted(() => {
 
 const reconciliationAndInvoice_list = ref([])
 const loadingInstance = ref(null)
+const isChecking = ref(false)
 async function checkDataAvailability() {
+  isChecking.value = true
   // 顯示 loading 遮罩
   loadingInstance.value = ElLoading.service({
     fullscreen: true,
@@ -78,6 +80,7 @@ async function checkDataAvailability() {
     setTimeout(() => {
       loadingInstance.value.close()
     }, 1000)
+    isChecking.value = false
   }
 }
 
@@ -401,7 +404,7 @@ async function share() {
     <div class="mb-5">
       <el-table
         :data="reconciliationAndInvoice_list"
-        v-loading="isLoadingReconciliationAndInvoice_list"
+        v-loading="isGettingCompanyInfo || isChecking || isLoadingReconciliationAndInvoice_list || isLoadingInvoiceList"
       >
         <el-table-column
           prop="acc_name"
