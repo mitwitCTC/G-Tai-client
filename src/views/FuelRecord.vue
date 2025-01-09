@@ -184,7 +184,6 @@ async function fetchFuelData() {
       discount_subtotal: Number(item.discount_amount) || 0,
       subtotal: Number(item.salesAmount) || 0,
       mileage: Number(item.mileage) || 0,
-      fuel_consumption: Number(item.fuel_consumption) || 0
     }))
   } catch (error) {
     console.error(error)
@@ -257,14 +256,12 @@ function exportExcel() {
     折讓小計: 'discount_subtotal',
     售價小計: 'subtotal',
     里程數: 'mileage',
-    油耗: 'fuel_consumption'
   }
 
   const formatRules = {
     quantity: '#,##0.00', // 數量保留兩位小數
     unit_price: '#,##0.0', // 單價保留一位小數
     discount: '#,##0.0', // 折讓保留兩位小數
-    fuel_consumption: '#,##0.00' // 油耗保留兩位小數
   }
 
   const numberFields = Object.keys(formatRules)
@@ -474,11 +471,6 @@ function logout() {
           <span>{{ formatNumber(row.mileage) }}</span>
         </template>
       </el-table-column>
-      <el-table-column align="center" min-width="110" prop="fuel_consumption" label="油耗">
-        <template #default="{ row }">
-          <span>{{ formatNumber(row.fuel_consumption) }}</span>
-        </template>
-      </el-table-column>
     </el-table>
     <el-table class="d-none" :data="filteredFuelData" id="fuel_data">
       <el-table-column align="center" min-width="110" prop="team" label="使用單位" />
@@ -506,7 +498,6 @@ function logout() {
       <el-table-column align="center" min-width="110" prop="discount_subtotal" label="折讓小計" />
       <el-table-column align="center" min-width="110" prop="subtotal" label="售價小計" />
       <el-table-column align="center" min-width="110" prop="mileage" label="里程數" />
-      <el-table-column align="center" min-width="110" prop="fuel_consumption" label="油耗" />
     </el-table>
   </div>
 </template>
