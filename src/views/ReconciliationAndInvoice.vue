@@ -436,6 +436,7 @@ function logout() {
       value-format="YYYY-MM"
       placeholder="請選擇查詢帳戶月份"
       @change="checkDataAvailability"
+      :disabled="isLoadingSubtotal_data || isLoadingReconciliationAndInvoice_list || isLoadingInvoiceList"
     />
     <p class="mt-4">{{ currentMonth }}月份對帳單&發票檔案列表</p>
     <div

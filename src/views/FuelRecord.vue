@@ -414,6 +414,7 @@ function logout() {
       format="YYYY-MM"
       value-format="YYYY-MM"
       placeholder="請選擇查詢帳戶月份"
+      :disabled="isLoadingSubtotal_data || isLoadingFuel_record"
     />
     <div class="d-flex justify-content-between align-items-center my-3">
       <p class="m-0">{{ currentMonth }}月份交易明細</p>

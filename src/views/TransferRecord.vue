@@ -308,6 +308,7 @@ function logout() {
       value-format="YYYY-MM"
       placeholder="請選擇查詢帳戶月份"
       @change="fetchTransferData"
+      :disabled="isLoadingSubtotal_data || isLoadingTransfer_record"
     />
     <p class="my-3">安全值金額：{{ formatNumber(low_balance) }}</p>
     <el-table
