@@ -17,6 +17,7 @@ const currentMonth = ref('')
 
 // API 根路由
 import apiClient from '@/api' // 載入 apiClient
+import { fetchWithRetry } from '@/services/fetchWithRetry'
 
 // 確認交易方式為儲值或月結 (1為儲值；2為月結)
 const transaction_mode = ref('')
@@ -55,7 +56,7 @@ async function fetchSubtotalData() {
   if (transaction_mode.value == 1) {
     isLoadingSubtotal_data.value = true
     try {
-      const response = await apiClient.post('/main/monthlyBalance', {
+      const response = await fetchWithRetry('/main/monthlyBalance', {
         date: search_month.value,
         customerId: cus_code
       })
@@ -79,7 +80,7 @@ async function fetchSubtotalData() {
   } else if (transaction_mode.value == 2) {
     isLoadingSubtotal_data.value = true
     try {
-      const response = await apiClient.post('/main/collateralInfo', {
+      const response = await fetchWithRetry('/main/collateralInfo', {
         cus_code: cus_code
       })
       const rawData = response.data.data[0]
@@ -158,7 +159,7 @@ async function checkDataAvailability() {
     background: 'rgba(0, 0, 0, 0.5)'
   })
   try {
-    const response = await apiClient.post('/main/dataJudgment', {
+    const response = await fetchWithRetry('/main/dataJudgment', {
       date: search_month.value
     })
     if (response.data.returnCode == 0) {
@@ -185,7 +186,7 @@ const isLoadingReconciliationAndInvoice_list = ref(false)
 async function searchAccountGroup() {
   isLoadingReconciliationAndInvoice_list.value = true
   try {
-    const response = await apiClient.post('/main/accountGroup', {
+    const response = await fetchWithRetry('/main/accountGroup', {
       date: search_month.value,
       customerId: cus_code
     })
@@ -205,7 +206,7 @@ const invoiceList = ref([])
 async function getInvoiceList() {
   isLoadingInvoiceList.value = true
   try {
-    const response = await apiClient.post('/main/searchInvoice', {
+    const response = await fetchWithRetry('/main/searchInvoice', {
       date: search_month.value,
       customerId: cus_code
     })

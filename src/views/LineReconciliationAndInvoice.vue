@@ -24,6 +24,7 @@ onMounted(() => {
 // API 根路由
 import apiClient from '@/api' // 載入 apiClient
 import apiServer from '@/apiServer'
+import { fetchWithRetry } from '@/services/fetchWithRetry'
 const isGettingCompanyInfo = ref(false)
 async function getCompanyInfo() {
   isGettingCompanyInfo.value = true
@@ -64,7 +65,7 @@ async function checkDataAvailability() {
     background: 'rgba(0, 0, 0, 0.5)'
   })
   try {
-    const response = await apiClient.post('/main/dataJudgment', {
+    const response = await fetchWithRetry('/main/dataJudgment', {
       date: search_month.value
     })
     if (response.data.returnCode == 0) {
@@ -89,7 +90,7 @@ const isLoadingReconciliationAndInvoice_list = ref(false)
 async function searchAccountGroup() {
   isLoadingReconciliationAndInvoice_list.value = true
   try {
-    const response = await apiClient.post('/main/accountGroup', {
+    const response = await fetchWithRetry('/main/accountGroup', {
       date: search_month.value,
       customerId: cus_code.value
     })
@@ -109,7 +110,7 @@ const invoiceList = ref([])
 async function getInvoiceList() {
   isLoadingInvoiceList.value = true
   try {
-    const response = await apiClient.post('/main/searchInvoice', {
+    const response = await fetchWithRetry('/main/searchInvoice', {
       date: search_month.value,
       customerId: cus_code.value
     })

@@ -23,14 +23,13 @@ function updateCurrentMonth() {
   }
 }
 
-// API 根路由
-import apiClient from '@/api' // 載入 apiClient
+import { fetchWithRetry } from '@/services/fetchWithRetry'
 // 最後更新時間
 const update_time = ref('')
 // 取得最後更新時間
 async function fetchUpdateTime() {
   try {
-    const response = await apiClient.post('/main/lastUpdateTime', {
+    const response = await fetchWithRetry('/main/lastUpdateTime', {
       customerId: cus_code
     })
     update_time.value = response.data.data
@@ -84,7 +83,7 @@ async function fetchSubtotalData() {
   if (transaction_mode.value == 1) {
     isLoadingSubtotal_data.value = true
     try {
-      const response = await apiClient.post('/main/monthlyBalance', {
+      const response = await fetchWithRetry('/main/monthlyBalance', {
         date: search_month.value,
         customerId: cus_code
       })
@@ -108,7 +107,7 @@ async function fetchSubtotalData() {
   } else if (transaction_mode.value == 2) {
     isLoadingSubtotal_data.value = true
     try {
-      const response = await apiClient.post('/main/collateralInfo', {
+      const response = await fetchWithRetry('/main/collateralInfo', {
         cus_code: cus_code
       })
       const rawData = response.data.data[0]
@@ -143,6 +142,8 @@ async function fetchSubtotalData() {
     }
   }
 }
+
+
 // 調整擔保品資料格式
 function parseCollateralData(data) {
   const result = []
@@ -170,7 +171,7 @@ async function fetchFuelData() {
   fetchUpdateTime()
   isLoadingFuel_record.value = true
   try {
-    const response = await apiClient.post('/main/balanceInquiry', {
+    const response = await fetchWithRetry('/main/balanceInquiry', {
       date: search_month.value,
       customerId: cus_code
     })

@@ -13,19 +13,20 @@ const current_month = ref(String(today.getMonth() + 1).padStart(2, '0'))
 const transfer_search_month = ref(`${currentYear}-${current_month.value}`)
 const currentMonth = ref('')
 
-// API 根路由
 import apiClient from '@/api' // 載入 apiClient
+import { fetchWithRetry } from '@/services/fetchWithRetry'
 // 結帳時間
 const transaction_time = ref('')
 // 取得結帳時間
 async function fetchTransactionTime() {
   try {
-    const response = await apiClient.post('/main/lastUpdateTime', {
+    const response = await fetchWithRetry('/main/lastUpdateTime', {
       customerId: cus_code
     })
     transaction_time.value = response.data.data
   } catch (error) {
     console.error(error)
+    alert('載入時間失敗，系統錯誤或網路不穩定！')
   }
 }
 onMounted(() => {
@@ -81,7 +82,7 @@ async function fetchSubtotalData() {
   if (transaction_mode.value == 1) {
     isLoadingSubtotal_data.value = true
     try {
-      const response = await apiClient.post('/main/monthlyBalance', {
+      const response = await fetchWithRetry('/main/monthlyBalance', {
         date: transfer_search_month.value,
         customerId: cus_code
       })
@@ -105,7 +106,7 @@ async function fetchSubtotalData() {
   } else if (transaction_mode.value == 2) {
     isLoadingSubtotal_data.value = true
     try {
-      const response = await apiClient.post('/main/collateralInfo', {
+      const response = await fetchWithRetry('/main/collateralInfo', {
         cus_code: cus_code
       })
       const rawData = response.data.data[0]
@@ -177,7 +178,7 @@ async function fetchTransferData() {
   fetchSubtotalData()
   isLoadingTransfer_record.value = true
   try {
-    const response = await apiClient.post('/main/remittanceRecord', {
+    const response = await fetchWithRetry('/main/remittanceRecord', {
       date: transfer_search_month.value,
       customerId: cus_code
     })
@@ -213,6 +214,7 @@ async function getTrading_model_list() {
     trading_model_list.value = response.data.data
   } catch (error) {
     console.error(error)
+    alert('確認交易模式失敗，系統錯誤或網路不穩定！')
   }
 }
 onMounted(() => {
