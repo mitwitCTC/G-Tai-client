@@ -97,6 +97,8 @@ async function fetchSubtotalData() {
       )
     } catch (error) {
       console.error(error)
+      alert('載入小計資料失敗，系統錯誤或網路不穩定！')
+      subtotal_data.value = {}
     } finally {
       isLoadingSubtotal_data.value = false
     }
@@ -131,6 +133,8 @@ async function fetchSubtotalData() {
       }
     } catch (error) {
       console.error(error)
+      alert('載入擔保品資料失敗，系統錯誤或網路不穩定！')
+      collateral_data.value = []
     } finally {
       isLoadingSubtotal_data.value = false
     }
@@ -186,6 +190,8 @@ async function fetchTransferData() {
     }))
   } catch (error) {
     console.error(error)
+    alert('載入匯款紀錄資料失敗，系統錯誤或網路不穩定！')
+    transfer_record.value = []
   } finally {
     isLoadingTransfer_record.value = false
   }
@@ -222,6 +228,7 @@ const tradingModelMap = computed(() => {
 
 watch(transfer_search_month, () => {
   fetchTransferData()
+  fetchSubtotalData()
 })
 onMounted(() => {
   fetchTransferData()

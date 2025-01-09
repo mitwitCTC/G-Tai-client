@@ -75,6 +75,7 @@ async function checkDataAvailability() {
     }
   } catch (error) {
     console.error(error)
+    alert('確認有無資料失敗，系統錯誤或網路不穩定！')
     reconciliationAndInvoice_list.value = []
   } finally {
     setTimeout(() => {
@@ -96,6 +97,8 @@ async function searchAccountGroup() {
     mergeInvoiceData()
   } catch (error) {
     console.error(error)
+    alert('載入對帳單組別資料失敗，系統錯誤或網路不穩定！')
+    reconciliationAndInvoice_list.value = []
   } finally {
     isLoadingReconciliationAndInvoice_list.value = false
   }
@@ -118,6 +121,8 @@ async function getInvoiceList() {
     }
   } catch (error) {
     console.error(error)
+    alert('載入發票資料失敗，系統錯誤或網路不穩定！')
+    invoiceList.value = []
   } finally {
     isLoadingInvoiceList.value = false
   }

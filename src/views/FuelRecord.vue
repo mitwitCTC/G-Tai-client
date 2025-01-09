@@ -100,6 +100,8 @@ async function fetchSubtotalData() {
       )
     } catch (error) {
       console.error(error)
+      alert('載入小計資料失敗，系統錯誤或網路不穩定！')
+      subtotal_data.value = {}
     } finally {
       isLoadingSubtotal_data.value = false
     }
@@ -134,6 +136,8 @@ async function fetchSubtotalData() {
       }
     } catch (error) {
       console.error(error)
+      alert('載入擔保品資料失敗，系統錯誤或網路不穩定！')
+      collateral_data.value = []
     } finally {
       isLoadingSubtotal_data.value = false
     }
@@ -187,6 +191,8 @@ async function fetchFuelData() {
     }))
   } catch (error) {
     console.error(error)
+    alert('載入交易明細資料失敗，系統錯誤或網路不穩定！')
+    fuel_record.value = []
   } finally {
     isLoadingFuel_record.value = false
   }
