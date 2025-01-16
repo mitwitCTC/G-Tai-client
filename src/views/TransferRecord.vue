@@ -169,8 +169,6 @@ onMounted(() => {
   checkTransaction_mode()
 })
 
-const low_balance = ref(200000)
-
 const transfer_record = ref([])
 
 // 搜尋匯款紀錄
@@ -312,7 +310,7 @@ function logout() {
       @change="fetchTransferData"
       :disabled="isLoadingSubtotal_data || isLoadingTransfer_record"
     />
-    <p class="my-3">安全值金額：{{ formatNumber(low_balance) }}</p>
+    <p class="my-3"></p>
     <el-table
       :data="transfer_record"
       stripe
