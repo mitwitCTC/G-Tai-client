@@ -461,7 +461,7 @@ function logout() {
       element-loading-svg-view-box="-10, -10, 50, 50"
       element-loading-background="rgba(122, 122, 122, 0.8)"
     ></div>
-    <div class="mb-5">
+    <div class="mb-3">
       <el-table
         :data="reconciliationAndInvoice_list"
         v-loading="isLoadingReconciliationAndInvoice_list || isLoadingInvoiceList"

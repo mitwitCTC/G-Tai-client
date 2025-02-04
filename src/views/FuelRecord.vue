@@ -429,6 +429,7 @@ function logout() {
     </div>
 
     <el-table
+      class="mb-3"
       :data="filteredFuelData"
       stripe
       height="350"

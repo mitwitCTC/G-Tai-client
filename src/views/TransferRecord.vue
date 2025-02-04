@@ -312,6 +312,7 @@ function logout() {
     />
     <p class="my-3"></p>
     <el-table
+      class="mb-3"
       :data="transfer_record"
       stripe
       height="350"
