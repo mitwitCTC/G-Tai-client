@@ -2,7 +2,7 @@ import apiClient from "@/api";
 
 
 export async function fetchWithRetry(endpoint, params = {}, config = {}) {
-  const maxRetries = 5; // 最大重試次數
+  const maxRetries = 10; // 最大重試次數
   let retryCount = 0; // 當前重試次數
   let abortController = null; // 用於追踪當前的 API 呼叫
 
@@ -18,7 +18,7 @@ export async function fetchWithRetry(endpoint, params = {}, config = {}) {
       const response = await new Promise((resolve, reject) => {
         const timeout = setTimeout(() => {
           reject(new Error('timeout')); // 超時錯誤
-        }, 10000); // 10 秒超時
+        }, 15000); // 15 秒超時
 
         apiClient.post(endpoint, params, { ...config, signal })
           .then((res) => {
