@@ -92,6 +92,7 @@ async function fetchSubtotalData() {
 
       // 如果 parsedData 為空，僅添加款項繳費期限
       if (parsedData.length === 0) {
+        collateral_data.value = []
         collateral_data.value.push({
           collateralType: '',
           collateralAmount: '',
@@ -99,6 +100,7 @@ async function fetchSubtotalData() {
         })
       } else {
         parsedData.forEach((item) => {
+          collateral_data.value = []
           collateral_data.value.push({
             collateralType: item.type,
             collateralAmount: item.amount,
