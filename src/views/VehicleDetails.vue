@@ -1,0 +1,3 @@
+<template>
+    <h1>車籍明細頁面建置中...</h1>
+</template>

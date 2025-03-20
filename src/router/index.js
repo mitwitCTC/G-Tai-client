@@ -38,6 +38,26 @@ const router = createRouter({
       path: '/line-reconciliation-invoice',
       name: 'ReconciliationAndInvoiceForLine',
       component: () => import('@/views/LineReconciliationAndInvoice.vue')
+    },
+    {
+      path: '/carbon-check',
+      name: 'CarbonCheck',
+      component: () => import('@/views/CarbonCheck.vue')
+    },
+    {
+      path: '/vehicle-details',
+      name: 'VehicleDetails',
+      component: () => import('@/views/VehicleDetails.vue')
+    },
+    {
+      path: '/station-details',
+      name: 'StationDetails',
+      component: () => import('@/views/StationDetails.vue')
+    },
+    {
+      path: '/remittance-info',
+      name: 'RemittanceInfo',
+      component: () => import('@/views/RemittanceInfo.vue')
     }
   ]
 })

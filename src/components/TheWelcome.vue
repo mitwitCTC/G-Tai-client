@@ -26,6 +26,26 @@ const navItems = ref([
     name: '對帳及發票查詢',
     path: '/reconciliation-invoice',
     icon_path: 'bi bi-card-checklist'
+  },
+  {
+    name: '碳排查詢',
+    path: '/carbon-check',
+    icon_path: 'bi bi-activity'
+  },
+  {
+    name: '車藉明細',
+    path: '/vehicle-details',
+    icon_path: 'bi bi-car-front-fill'
+  },
+  {
+    name: '站點明細',
+    path: '/station-details',
+    icon_path: 'bi bi-fuel-pump-fill'
+  },
+  {
+    name: '匯款資訊',
+    path: '/remittance-info',
+    icon_path: 'bi bi-cash-coin'
   }
 ])
 const companyStore = useCompanyStore()
