@@ -1,10 +1,9 @@
 <script setup>
+import TheLayout from '@/components/TheLayout.vue'
 import { useCompanyStore } from '@/stores/companyStore'
 const companyStore = useCompanyStore()
 import { ref, watch, computed, onMounted } from 'vue'
-import router from '@/router'
 const cus_code = companyStore.company_info.customerId
-const customerName = companyStore.company_info.customerName
 
 // 預設當月
 const today = new Date()
@@ -240,25 +239,10 @@ onMounted(() => {
 function formatNumber(value) {
   return typeof value === 'number' ? value.toLocaleString('en-US') : value
 }
-
-function logout() {
-  sessionStorage.clear()
-  router.push('/login')
-}
 </script>
 
 <template>
-  <div class="container mt-5">
-    <div class="d-flex justify-content-between align-items-center">
-      <router-link to="/">
-        <button class="btn btn-yellow mb-2">回首頁</button>
-      </router-link>
-      <button class="btn btn-yellow" @click="logout">登出</button>
-    </div>
-    <h3>
-      {{ customerName }}
-      <span>({{ cus_code }})</span>
-    </h3>
+  <TheLayout>
     <p class="d-flex justify-content-between">
       <span class="fw-bold">匯款紀錄查詢</span>
       <span v-if="transaction_time != '無最後更新時間'">結帳時間：{{ transaction_time }}</span>
@@ -337,7 +321,7 @@ function logout() {
         </template>
       </el-table-column>
     </el-table>
-  </div>
+  </TheLayout>
 </template>
 
 <style scoped></style>

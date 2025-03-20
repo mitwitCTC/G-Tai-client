@@ -1,12 +1,11 @@
 <script setup>
+import TheLayout from '@/components/TheLayout.vue'
 import { ref, watch, onMounted, computed } from 'vue'
-import router from '@/router'
 import { useCompanyStore } from '@/stores/companyStore'
 const companyStore = useCompanyStore()
 import { ElLoading } from 'element-plus'
 
 const cus_code = companyStore.company_info.customerId
-const customerName = companyStore.company_info.customerName
 // 預設當月
 const today = new Date()
 const currentYear = today.getFullYear()
@@ -212,7 +211,7 @@ async function getInvoiceList() {
       date: search_month.value,
       customerId: cus_code
     })
-    
+
     if (response.data.returnCode == 0) {
       invoiceList.value = response.data.data
       mergeInvoiceData()
@@ -238,11 +237,11 @@ function mergeInvoiceData() {
     const matchedInvoices = invoiceList.value.filter(
       (invoice) => invoice.account_sortId === item.account_sortId
     )
-    
+
     // 將 matchedInvoices 的發票號碼收集到陣列中
     return {
       ...item,
-      invoiceNums: matchedInvoices.map((invoice) => invoice.invoiceNum), // 收集發票號碼
+      invoiceNums: matchedInvoices.map((invoice) => invoice.invoiceNum) // 收集發票號碼
     }
   })
 }
@@ -329,7 +328,7 @@ async function downloadAccountDetails(account_sortId, acc_name) {
 const thisMonth = ref('')
 thisMonth.value = `${currentYear}-${current_month}` // 實際本月年-月
 const isDownloadingInvoice = ref(false)
-async function downloadInvoice(account_sortId, acc_name, invoiceNum) {  
+async function downloadInvoice(account_sortId, acc_name, invoiceNum) {
   isDownloadingInvoice.value = true
   try {
     const response = await apiClient.post(
@@ -340,7 +339,7 @@ async function downloadInvoice(account_sortId, acc_name, invoiceNum) {
         invoiceNum: invoiceNum
       },
       { responseType: 'blob' } // 確保回傳型態是二進位
-    )    
+    )
 
     if (response.data.returnCode == -1 || response.data.returnCode == -2) {
       alert(response.data.message)
@@ -371,25 +370,10 @@ const downloadFile = (blob, fileName) => {
   // 釋放資源
   setTimeout(() => URL.revokeObjectURL(link.href), 7000)
 }
-
-function logout() {
-  sessionStorage.clear()
-  router.push('/login')
-}
 </script>
 
 <template>
-  <div class="container mt-5">
-    <div class="d-flex justify-content-between align-items-center">
-      <router-link to="/">
-        <button class="btn btn-yellow mb-2">回首頁</button>
-      </router-link>
-      <button class="btn btn-yellow" @click="logout">登出</button>
-    </div>
-    <h3>
-      {{ customerName }}
-      <span>({{ cus_code }})</span>
-    </h3>
+  <TheLayout>
     <p class="fw-bold">對帳單&發票查詢</p>
 
     <el-table
@@ -439,7 +423,9 @@ function logout() {
       value-format="YYYY-MM"
       placeholder="請選擇查詢帳戶月份"
       @change="checkDataAvailability"
-      :disabled="isLoadingSubtotal_data || isLoadingReconciliationAndInvoice_list || isLoadingInvoiceList"
+      :disabled="
+        isLoadingSubtotal_data || isLoadingReconciliationAndInvoice_list || isLoadingInvoiceList
+      "
     />
     <p class="mt-4">{{ currentMonth }}月份對帳單&發票檔案列表</p>
     <div
@@ -474,7 +460,7 @@ function logout() {
           align="center"
           min-width="180"
         ></el-table-column>
-  
+
         <el-table-column prop="account_sortId" label="帳單總表" align="center" min-width="120">
           <template #default="{ row }">
             <a
@@ -485,7 +471,7 @@ function logout() {
             </a>
           </template>
         </el-table-column>
-  
+
         <el-table-column prop="account_sortId" label="帳單明細" align="center" min-width="120">
           <template #default="{ row }">
             <a
@@ -496,14 +482,19 @@ function logout() {
             </a>
           </template>
         </el-table-column>
-  
+
         <el-table-column prop="發票" label="發票" align="center" min-width="140">
           <template #default="{ row }">
             <a v-if="row.invoiceNums && row.invoiceNums.length > 0" class="pointer">
               <div class="d-flex flex-column gap-1 align-items-center">
-                <button class="btn btn-yellow" v-for="(invoiceNum, index) in row.invoiceNums"
-                :key="index">
-                  <span @click="downloadInvoice(row.account_sortId, row.acc_name, invoiceNum)">{{ invoiceNum }}</span>
+                <button
+                  class="btn btn-yellow"
+                  v-for="(invoiceNum, index) in row.invoiceNums"
+                  :key="index"
+                >
+                  <span @click="downloadInvoice(row.account_sortId, row.acc_name, invoiceNum)">{{
+                    invoiceNum
+                  }}</span>
                 </button>
               </div>
             </a>
@@ -512,7 +503,7 @@ function logout() {
         </el-table-column>
       </el-table>
     </div>
-  </div>
+  </TheLayout>
 </template>
 
 <style scoped>
