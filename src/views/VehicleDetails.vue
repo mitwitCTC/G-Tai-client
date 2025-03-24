@@ -16,48 +16,46 @@ const svg = `
      L 15 15
    " style="stroke-width: 4px; fill: rgba(0, 0, 0, 0)"/>
   `
+
+import apiServer from '@/apiServer'
+const vehicleDetailsApiRes = ref([])
 const vehicleDetails = ref([])
 async function getVehicleDetails() {
-  console.log(cus_code)
   isLoading.value = true
-  vehicleDetails.value = [
-    {
-      acc_name: '分公司Ａ',
-      plate: 'AAA-1111',
-      product_name: '超級柴油',
-      card_num: '#1234567890000000000',
-      due_dateTime: '2025-12-01 12:12:12',
-      suspend_date: 0
-    },
-    {
-      acc_name: '分公司A',
-      plate: 'AAA-2222',
-      product_name: '超級柴油',
-      card_num: '#1234567890000000000',
-      due_dateTime: '2025-12-01 12:12:12',
-      suspend_date: '0'
-    },
-    {
-      acc_name: '分公司A',
-      plate: 'AAA-3333',
-      product_name: '超級柴油',
-      card_num: '#1234567890000000000',
-      due_dateTime: '2025-12-01 12:12:12',
-      suspend_date: '2025-01-01'
+  try {
+    const response = await apiServer.post('/main/exportcard', {
+      customerId: cus_code
+    })
+    if (response.data.returnCode == 0) {
+      vehicleDetailsApiRes.value = response.data.data
+      vehicleDetails.value = vehicleDetailsApiRes.value.map((item) => ({
+        acc_name: item.cus_name,
+        plate: item.license_plate,
+        product_name:
+          item.card_type === '1'
+            ? '尿素'
+            : item.card_type === '2'
+              ? '柴油'
+              : item.card_type === '3'
+                ? '汽油'
+                : '諾瓦尿素',
+        card_num: item.card_number,
+        due_dateTime: item.card_arrival_date,
+        suspend_date: item.card_stop_date
+      }))
     }
-  ]
-  console.log(vehicleDetails.value)
-
-  setTimeout(() => {
+  } catch (error) {
+    console.error(error)
+  } finally {
     isLoading.value = false
-  }, 1000)
+  }
 }
 onMounted(() => {
   getVehicleDetails()
 })
 
 const search_plate = ref('')
-// 以車牌搜尋加油交易明細
+// 以車牌搜尋車籍明細
 const filteredVehicleDetails = computed(() => {
   const trimmedPlate = search_plate.value.trim().toUpperCase()
   if (trimmedPlate === '') {
@@ -66,75 +64,54 @@ const filteredVehicleDetails = computed(() => {
   return vehicleDetails.value.filter((item) => item.plate.includes(trimmedPlate))
 })
 
-import FileSaver from 'file-saver'
-import * as XLSX from 'xlsx'
-async function exportExcel() {
-  let xlsxParam = { raw: true }
-  let wb = XLSX.utils.table_to_book(document.querySelector('#vehicleDetails'), xlsxParam)
+import ExcelJS from "exceljs";
 
-  // 獲取工作表
-  let ws = wb.Sheets[wb.SheetNames[0]]
-
-  // 設置儲存格格式
-  let range = XLSX.utils.decode_range(ws['!ref'])
-
-  for (let R = range.s.r; R <= range.e.r; ++R) {
-    for (let C = range.s.c; C <= range.e.c; ++C) {
-      let cell_address = { c: C, r: R }
-      let cell_ref = XLSX.utils.encode_cell(cell_address)
-      let cell = ws[cell_ref]
-
-      if (!cell) continue
-      if (!ws[cell_ref].s) ws[cell_ref].s = {}
-
-      // 設置對齊方式
-      ws[cell_ref].s.alignment = { horizontal: 'center', vertical: 'center' }
-
-    }
-  }
-
-  // 設置欄位寬度
-  let colWidths = []
-  for (let C = range.s.c; C <= range.e.c; ++C) {
-    let maxWidth = 0 // 不設置初始寬度，讓其動態增大
-    for (let R = range.s.r; R <= range.e.r; ++R) {
-      let cell_address = { c: C, r: R }
-      let cell_ref = XLSX.utils.encode_cell(cell_address)
-      let cell = ws[cell_ref]
-
-      if (!cell || !cell.v) continue
-      let cellValue = cell.v.toString()
-
-      // 針對中文及英文字元做不同的長度調整
-      let adjustedLength = cellValue.length
-      if (/[\u4e00-\u9fa5]/.test(cellValue)) {
-        // 如果包含中文字元，字元寬度需要更大，這裡假設中文字佔用兩個單位寬度
-        adjustedLength = cellValue.length * 2
-      }
-
-      // 找出此列中最長的內容長度，並動態設置最大寬度
-      maxWidth = Math.max(maxWidth, adjustedLength)
-    }
-
-    // 避免過窄欄位，設置最小寬度為 10
-    colWidths.push({ wch: Math.max(maxWidth, 10) })
-  }
-  ws['!cols'] = colWidths
-
-  // 將工作簿寫出
-  const wbout = XLSX.write(wb, { bookType: 'xlsx', bookSST: true, type: 'array' })
+async function exportExcel(apiData) {
   try {
-    FileSaver.saveAs(
-      new Blob([wbout], { type: 'application/octet-stream' }),
-      `車籍明細.xlsx`
-    )
-  } catch (e) {
-    if (console) {
-      console.log(e, wbout)
-    }
+    const workbook = new ExcelJS.Workbook();
+    const response = await fetch(new URL('@/assets/車籍資料表.xlsx', import.meta.url).href);
+    const data = await response.arrayBuffer();
+    
+    await workbook.xlsx.load(data);
+    const worksheet = workbook.worksheets[0];
+
+    // Start filling data from row 2 (assuming row 1 is header)
+    apiData.forEach((data, index) => {
+      const rowIndex = index + 2;
+      worksheet.getCell(`A${rowIndex}`).value = data.customerId || '';
+      worksheet.getCell(`B${rowIndex}`).value = data.cus_name || '';
+      worksheet.getCell(`C${rowIndex}`).value = data.acc_name || '';
+      worksheet.getCell(`D${rowIndex}`).value = data.use_number || '';
+      worksheet.getCell(`E${rowIndex}`).value = data.license_plate || '';
+      worksheet.getCell(`F${rowIndex}`).value = 
+        data.card_type === '1' ? '尿素' :
+        data.card_type === '2' ? '柴油' :
+        data.card_type === '3' ? '汽油' :
+        data.card_type === '4' ? '諾瓦尿素' : data.card_type || '';
+      worksheet.getCell(`G${rowIndex}`).value = data.card_number || '';
+      worksheet.getCell(`H${rowIndex}`).value = data.upload_reason || '';
+      worksheet.getCell(`I${rowIndex}`).value = data.card_arrival_date == '0' ? '' : data.card_arrival_date || '';
+      worksheet.getCell(`J${rowIndex}`).value = data.card_stop_date == '0' ? '' : data.card_stop_date || '';
+      worksheet.getCell(`K${rowIndex}`).value = data.del == '0' ? '' : data.del || '';
+      worksheet.getCell(`L${rowIndex}`).value = data.notes || '';
+    });
+
+    // Adjust column widths
+    worksheet.getColumn(2).width = 50;
+    worksheet.getColumn(3).width = 60;
+    worksheet.getColumn(12).width = 80;
+
+    // Generate and download
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: 'application/octet-stream' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `${apiData[0].customerId}_${apiData[0].cus_name}_車籍資料表.xlsx`;
+    link.click();
+  } catch (error) {
+    console.error('Export failed:', error);
   }
-  return wbout
-}
+    }
 </script>
 <template>
   <TheLayout>
@@ -145,7 +122,7 @@ async function exportExcel() {
         class="w-50"
         clearable
       ></el-input>
-      <button class="btn btn-warning" @click="exportExcel">匯出</button>
+      <button class="btn btn-warning" @click="exportExcel(vehicleDetailsApiRes)">匯出</button>
     </div>
 
     <div class="search d-flex mb-3 col-12 col-md-3"></div>
@@ -165,7 +142,11 @@ async function exportExcel() {
       <el-table-column align="center" min-width="200" prop="plate" label="車牌號碼" />
       <el-table-column align="center" min-width="200" prop="product_name" label="產品名稱" />
       <el-table-column align="center" min-width="200" prop="card_num" label="卡號" />
-      <el-table-column align="center" min-width="200" prop="due_dateTime" label="到卡日期" />
+      <el-table-column align="center" min-width="200" prop="due_dateTime" label="到卡日期">
+        <template #default="scope">
+          {{ scope.row.due_dateTime == '0' ? '' : scope.row.due_dateTime }}
+        </template>
+      </el-table-column>
       <el-table-column align="center" min-width="200" prop="suspend_date" label="停卡日期">
         <template #default="scope">
           {{ scope.row.suspend_date == '0' ? '' : scope.row.suspend_date }}
