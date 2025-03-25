@@ -5,26 +5,35 @@ import { useCompanyStore } from '@/stores/companyStore'
 const companyStore = useCompanyStore()
 const cus_code = companyStore.company_info.customerId
 
-const isLoading = ref(false)
+let loadingInstance = null
 import { ElLoading } from 'element-plus'
+import apiServer from '@/apiServer'
 
 const remittanceInfo = ref({})
 async function getRemittanceInfo() {
-  console.log(cus_code)
   // 顯示 loading 遮罩
-  isLoading.value = ElLoading.service({
+  loadingInstance = ElLoading.service({
     fullscreen: true,
     text: '載入中...',
     background: 'rgba(0, 0, 0, 0.5)'
   })
-  remittanceInfo.value = {
-    bank: 'XX銀行',
-    branch: 'OO分行',
-    account_number: '0091234567890'
+  try {
+    const response = await apiServer.post('/main/searchCustomer', {
+      cus_code: cus_code
+    })
+    remittanceInfo.value = {
+      bank_code: '050',
+      bank_name: '臺灣中小企業銀行',
+      branch_name: '松江分行',
+      account_name: '鉅泰創新股份有公司',
+      account_number: response.data.data[0].virtual_account
+    }
+  } catch (error) {
+    console.error(error)
+    alert('載入匯款資料失敗，系統錯誤或網路不穩定！')
+  } finally {
+    loadingInstance.close()
   }
-  setTimeout(() => {
-    isLoading.value = false
-  }, 1000)
 }
 onMounted(() => {
   getRemittanceInfo()
@@ -32,17 +41,53 @@ onMounted(() => {
 </script>
 <template>
   <TheLayout>
-    <h3 class="mt-3 text-center">
-      銀行：
-      {{ remittanceInfo.bank }}
-    </h3>
-    <h3 class="text-center">
-      分行：
-      {{ remittanceInfo.branch }}
-    </h3>
-    <h3 class="text-center">
-      帳號：
-      {{ remittanceInfo.account_number }}
-    </h3>
+    <h3>匯款資訊</h3>
+    <div class="d-flex justify-content-center">
+      <div class="row">
+      <div class="col-12">
+        <div class="d-flex align-items-center mb-2">
+          <h3 class="label">銀行代號</h3>
+          <h3 class="colon">:</h3>
+          <h3 class="value">{{ remittanceInfo.bank_code }}</h3>
+        </div>
+        <div class="d-flex align-items-center mb-2">
+          <h3 class="label">銀行名稱</h3>
+          <h3 class="colon">:</h3>
+          <h3 class="value">{{ remittanceInfo.bank_name }}</h3>
+        </div>
+        <div class="d-flex align-items-center mb-2">
+          <h3 class="label">分行名稱</h3>
+          <h3 class="colon">:</h3>
+          <h3 class="value">{{ remittanceInfo.branch_name }}</h3>
+        </div>
+        <div class="d-flex align-items-center mb-2">
+          <h3 class="label">戶名</h3>
+          <h3 class="colon">:</h3>
+          <h3 class="value">{{ remittanceInfo.account_name }}</h3>
+        </div>
+        <div class="d-flex align-items-center mb-2">
+          <h3 class="label">銀行帳號</h3>
+          <h3 class="colon">:</h3>
+          <h3 class="value">{{ remittanceInfo.account_number }}</h3>
+        </div>
+      </div>
+    </div>
+
+    </div>
   </TheLayout>
 </template>
+<style scoped>
+.label {
+  width: 4em;
+  text-align: justify;
+  text-align-last: justify;
+}
+.colon {
+  width: 1em;
+  text-align: center;
+}
+.value {
+  text-align: left;
+  flex-grow: 1;
+}
+</style>
