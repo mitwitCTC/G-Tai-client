@@ -25,7 +25,7 @@ async function getRemittanceInfo() {
       bank_code: '050',
       bank_name: '臺灣中小企業銀行',
       branch_name: '松江分行',
-      account_name: '鉅泰創新股份有公司',
+      account_name: '鉅泰創新股份有限公司',
       account_number: response.data.data[0].virtual_account
     }
   } catch (error) {
