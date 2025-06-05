@@ -29,7 +29,7 @@ async function getVehicleDetails() {
     if (response.data.returnCode == 0) {
       vehicleDetailsApiRes.value = response.data.data
       vehicleDetails.value = vehicleDetailsApiRes.value.map((item) => ({
-        acc_name: item.cus_name,
+        acc_name: item.acc_name,
         plate: item.license_plate,
         product_name:
           item.card_type === '1'
