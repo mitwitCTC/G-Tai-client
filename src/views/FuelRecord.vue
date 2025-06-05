@@ -269,7 +269,7 @@ function exportExcel() {
   const formatRules = {
     quantity: '#,##0.00', // 數量保留兩位小數
     unit_price: '#,##0.0', // 單價保留一位小數
-    discount: '#,##0.0', // 折讓保留兩位小數
+    discount: '#,##0.00', // 折讓保留兩位小數
   }
 
   const numberFields = Object.keys(formatRules)
