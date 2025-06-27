@@ -33,7 +33,7 @@ const navItems = ref([
     icon_path: 'bi bi-activity'
   },
   {
-    name: '車藉明細',
+    name: '車籍明細',
     path: '/vehicle-details',
     icon_path: 'bi bi-car-front-fill'
   },
