@@ -38,7 +38,7 @@ const navItems = ref([
     icon_path: 'bi bi-car-front-fill'
   },
   {
-    name: '站點明細',
+    name: '站點明細\n（建置中）',
     path: '/station-details',
     icon_path: 'bi bi-fuel-pump-fill'
   },
@@ -324,6 +324,7 @@ function handleEnterKey(event) {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: pre-line;
 }
 
 .pointer {
