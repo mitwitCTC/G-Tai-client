@@ -246,7 +246,7 @@ function exportExcel() {
       :disabled="isLoadingSubtotal_data || isLoadingFuel_record"
     />
     <div class="d-flex justify-content-between align-items-center my-3">
-      <p class="m-0">{{ currentMonth }}月份碳排量</p>
+      <p class="m-0">{{ currentMonth }}月份碳排量(kg)</p>
       <button class="btn btn-warning" @click="exportExcel" :disabled="isLoadingFuel_record">
         匯出
       </button>
@@ -255,7 +255,7 @@ function exportExcel() {
     <div class="search d-flex mb-3 col-12 col-md-3">
       <el-input v-model="plate" placeholder="請輸入車牌搜尋" clearable></el-input>
     </div>
-
+    <p class="text-danger fs-10">資料來源：*台灣中油股份有限公司; *環境部氣候變遷署 事業溫室氣體排放量資訊平台</p>
     <el-table
       class="mb-3"
       :data="filteredFuelData"
@@ -327,4 +327,8 @@ function exportExcel() {
   </TheLayout>
 </template>
 
-<style scoped></style>
+<style scoped>
+.fs-10 {
+  font-size: 10px;
+}
+</style>
