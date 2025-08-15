@@ -290,14 +290,14 @@ function exportExcel() {
           <span>{{ formatNumber(row.mileage) }}</span>
         </template>
       </el-table-column>
-      <el-table-column align="center" min-width="110" prop="mileage" label="碳排放量(kg)">
-        <template #default="{ row }">
-          <span>{{ formatNumber(row.carbon_emission) }}</span>
-        </template>
-      </el-table-column>
-      <el-table-column align="center" min-width="110" prop="mileage" label="排放係數">
+      <el-table-column align="center" min-width="110" prop="emission_factor" label="排放係數">
         <template #default="{ row }">
           <span>{{ formatNumber(row.emission_factor) }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column align="center" min-width="110" prop="carbon_emission" label="碳排放量(kg)">
+        <template #default="{ row }">
+          <span>{{ formatNumber(row.carbon_emission) }}</span>
         </template>
       </el-table-column>
     </el-table>
