@@ -105,33 +105,47 @@ async function fetchSubtotalData() {
   } else if (transaction_mode.value == 2) {
     isLoadingSubtotal_data.value = true
     try {
-      const response = await fetchWithRetry('/main/collateralInfo', {
-        cus_code: cus_code
-      })
-      const rawData = response.data.data[0]
+      const [collateralRes, balanceRes] = await Promise.all([
+        fetchWithRetry('/main/collateralInfo', {
+          cus_code: cus_code
+        }),
+        fetchWithRetry('/main/monthlyBalance', {
+          date: transfer_search_month.value,
+          customerId: cus_code
+        })
+      ])
+
+      // 擔保品資料處理
+      const rawData = collateralRes.data.data[0]
       const configNotes = rawData.config_notes || ''
       const remittanceDate = rawData.remittance_date
-
-      const parsedData = parseCollateralData(configNotes)
       const paymentDeadline = remittanceDate ? `每月${remittanceDate}日前` : ''
+      const parsedData = parseCollateralData(configNotes)
 
-      // 如果 parsedData 為空，僅添加款項繳費期限
+      // 月結餘額資料
+      const balanceData = balanceRes.data.data[0] || {}
+      const overage = formatNumber(Number(balanceData.overage || 0))
+      const creditAmount = formatNumber(Number(balanceData.creditAmount || 0))
+
+      // 組合資料
       if (parsedData.length === 0) {
-        collateral_data.value = []
-        collateral_data.value.push({
-          collateralType: '',
-          collateralAmount: '',
-          paymentDeadline
-        })
+        collateral_data.value = [
+          {
+            collateralType: '',
+            collateralAmount: '',
+            paymentDeadline,
+            overage,
+            creditAmount
+          }
+        ]
       } else {
-        collateral_data.value = []
-        parsedData.forEach((item) => {
-          collateral_data.value.push({
-            collateralType: item.type,
-            collateralAmount: item.amount,
-            paymentDeadline
-          })
-        })
+        collateral_data.value = parsedData.map((item) => ({
+          collateralType: item.type,
+          collateralAmount: item.amount,
+          paymentDeadline,
+          overage,
+          creditAmount
+        }))
       }
     } catch (error) {
       console.error(error)
@@ -186,7 +200,8 @@ async function fetchTransferData() {
       scheduled_date: convertToGregorianDate(Number(item.account_date)), // 轉換日期格式
       checkoutTime: item.checkoutTime === '0' ? '' : item.checkoutTime.replace(/\//g, '-'), // 轉換日期格式
       remittance_amount: formatNumber(Number(item.amount)), // 格式化數字
-      note: tradingModelMap[item.trading_model] || item.trading_model // 取得對應的 trading_model_des，若無則顯示原始 trading_model
+      note: tradingModelMap[item.trading_model] || item.trading_model, // 取得對應的 trading_model_des，若無則顯示原始 trading_model
+      remark_cus: item.remark
     }))
   } catch (error) {
     console.error(error)
@@ -227,13 +242,8 @@ const tradingModelMap = computed(() => {
   }, {})
 })
 
-watch(transfer_search_month, () => {
-  fetchTransferData()
-  fetchSubtotalData()
-})
-onMounted(() => {
-  fetchTransferData()
-})
+watch(transfer_search_month, fetchTransferData)
+onMounted(fetchTransferData)
 
 // 格式化數字
 function formatNumber(value) {
@@ -285,6 +295,10 @@ function formatNumber(value) {
       </el-table-column>
       <el-table-column align="center" min-width="120" prop="paymentDeadline" label="款項繳費期限">
       </el-table-column>
+      <el-table-column align="center" min-width="120" prop="overage" label="上月餘額">
+      </el-table-column>
+      <el-table-column align="center" min-width="120" prop="creditAmount" label="本月匯款金額">
+      </el-table-column>
     </el-table>
     查詢帳戶月份：
     <el-date-picker
@@ -320,6 +334,8 @@ function formatNumber(value) {
           <span>{{ tradingModelMap[row.note] }}</span>
         </template>
       </el-table-column>
+      <el-table-column align="center" prop="checkoutTime" label="結帳日" />
+      <el-table-column align="center" prop="remark_cus" label="備註" />
     </el-table>
   </TheLayout>
 </template>
